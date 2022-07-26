@@ -12,7 +12,8 @@ const GameRoom = () => {
 	const { players, increasePlayerScore, round, setRound } = usePlayerContext();
 	const windowSize = useWindowSize();
 
-	const [describer, setDescriber] = useState(1);
+	const [describer, setDescriber] = useState(0);
+
 	const client = 0;
 	let { words, notes } = players[describer];
 
@@ -20,50 +21,90 @@ const GameRoom = () => {
 
 	const navigate = useNavigate();
 
-	const timeRemaining = 70;
-	const initialMessages = [
-		{
-			sender: "Taosit",
-			isBot: false,
-			isDescriber: true,
-			text: "It'a a mountain made of ice. There are plenty in Arctic and Antarctic and perhaps in areas with really high altitude.",
-		},
-		{
-			sender: "Valencia",
-			isBot: false,
-			isDescriber: false,
-			text: "I know the word. It's at the tip of my tongue.",
-		},
-		{ sender: "Lucy", isBot: false, isDescriber: false, text: "It's galcier" },
-		{ sender: "Lucy", isBot: false, isDescriber: false, text: "glacier" },
-		{
-			sender: null,
-			isBot: true,
-			isDescriber: null,
-			text: "The correct word is glacier. Lucy earns a point!",
-		},
-		{
-			sender: null,
-			isBot: true,
-			isDescriber: null,
-			text: "Now is Olivier's turn!",
-		},
-		{
-			sender: "Olivier",
-			isBot: false,
-			isDescriber: true,
-			text: "a piece of clothes for upper body",
-		},
-	];
+	const timePerRound = 15;
+
+	const getEndTime = timeValue => {
+		let time = new Date();
+		time.setSeconds(time.getSeconds() + parseInt(timeValue));
+		return time.getTime();
+	};
 
 	const [inputText, setInputText] = useState("");
-	const [messages, setMessages] = useState(initialMessages);
+	const [messages, setMessages] = useState([]);
 	const [display, setDisplay] = useState("chatbox");
+	const [time, setTime] = useState(null);
+
+	let timeInterval;
+
+	useEffect(() => {
+		if ((describer < 3 && time >= 0) || (describer === 3 && time >= 1)) return;
+		console.log("past return");
+		clearInterval(timeInterval);
+		setMessages(prev => [
+			...prev,
+			{
+				sender: null,
+				isBot: true,
+				isDescriber: null,
+				text: `Time out... The correct word is ${words[round]}.`,
+			},
+			{
+				sender: null,
+				isBot: true,
+				isDescriber: null,
+				text:
+					describer !== 3
+						? `Now it's ${
+								describer + 1 === client
+									? "your"
+									: `${players[(describer + 1) % 4].username}'s`
+						  } turn.`
+						: "The round ends",
+			},
+		]);
+		endTurn();
+	}, [time]);
 
 	useEffect(() => {
 		setDisplay("chatbox");
+		const endTimeResult = getEndTime(timePerRound);
+		setTime(timePerRound);
+
+		console.log("in use effect");
+
+		timeInterval = setInterval(() => {
+			console.log("time changes");
+			const updatedTime = Math.round(
+				(endTimeResult - new Date().getTime()) / 1000
+			);
+			setTime(updatedTime);
+			if (describer === 3 && updatedTime === 0) {
+				clearInterval(timeInterval);
+			}
+		}, 1000);
+
 		// handle describer change logic
+
+		return () => {
+			clearInterval(timeInterval);
+		};
 	}, [describer]);
+
+	const endTurn = () => {
+		if (round == 2 && describer === 3) {
+			//Game over
+		} else {
+			if (describer === 3) {
+				// New round
+				setRound(prev => prev + 1);
+				setTimeout(() => {
+					navigate("/notes-room");
+				}, 2000);
+			} else {
+				setDescriber(prev => prev + 1);
+			}
+		}
+	};
 
 	const appendMessage = text => {
 		if (text.toLowerCase().includes(words[round])) {
@@ -95,19 +136,7 @@ const GameRoom = () => {
 							: "The round ends",
 				},
 			]);
-			if (round == 2 && describer === 3) {
-				//Game over
-			} else {
-				if (describer === 3) {
-					// New round
-					setRound(prev => prev + 1);
-					setTimeout(() => {
-						navigate("/notes-room");
-					}, 2000);
-				} else {
-					setDescriber(prev => prev + 1);
-				}
-			}
+			endTurn();
 			increasePlayerScore(client, 1);
 		} else {
 			setMessages(prev => [
@@ -166,7 +195,7 @@ const GameRoom = () => {
 					<div className="flex items-center">
 						<img src={timerIcon} alt="time ramaining" />
 						<p className="ml-2 text-white font-semibold md:text-xl">
-							{formatTime(timeRemaining)}
+							{formatTime(time)}
 						</p>
 					</div>
 					{describer === client ? (

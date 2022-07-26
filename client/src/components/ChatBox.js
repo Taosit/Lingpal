@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import useWindowSize from "../hooks/useWindowSize";
 
 const ChatBox = ({
@@ -11,8 +11,13 @@ const ChatBox = ({
 }) => {
 	const windowSize = useWindowSize();
 	const lastMessageRef = useRef();
+	const [disableSend, setDisableSend] = useState(false);
 
 	const sendMessage = () => {
+		if (!clientIsDescriber) {
+			setDisableSend(true);
+			setTimeout(() => setDisableSend(false), 5000);
+		}
 		setInputText("");
 		appendMessage(inputText);
 	};
@@ -35,7 +40,7 @@ const ChatBox = ({
 			} bg-transparent-50 rounded p-2 flex flex-col relative z-10`}
 		>
 			<div
-				className={`w-full ${
+				className={`scrollbar w-full ${
 					clientIsDescriber ? "h-2/3" : "h-full"
 				} my-2 p-2 bg-white overflow-y-auto flex flex-col`}
 			>
@@ -88,15 +93,16 @@ const ChatBox = ({
 			{!clientIsDescriber && (
 				<div className="w-full h-2 rounded-full bg-yellow-300 flex items-center">
 					<div
-						style={{ width: `${70}%` }}
-						className="h-1 rounded-full bg-orange-500"
+						className={`h-1 rounded-full bg-orange-500 ${
+							disableSend ? "progress-bar" : ""
+						}`}
 					></div>
 				</div>
 			)}
 			<textarea
 				value={inputText}
 				onChange={e => setInputText(e.target.value)}
-				className="w-full h-1/3 my-2 p-2 bg-white overflow-y-auto focus:outline-yellow-300 resize-none"
+				className="scrollbar w-full h-1/3 my-2 p-2 bg-white overflow-y-auto focus:outline-yellow-300 resize-none"
 			/>
 			<div className="w-full flex justify-around items-center">
 				{clientIsDescriber && windowSize.width < 1024 && (
@@ -108,7 +114,8 @@ const ChatBox = ({
 					</button>
 				)}
 				<button
-					className="mb-2 px-6 py-1 rounded-xl bg-blue-500 text-white sm:text-xl"
+					disabled={disableSend}
+					className="mb-2 px-6 py-1 rounded-xl bg-blue-500 text-white sm:text-xl disabled:bg-blue-200"
 					onClick={() => sendMessage()}
 				>
 					Send

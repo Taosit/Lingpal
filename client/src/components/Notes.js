@@ -21,7 +21,7 @@ const Notes = ({ word, notes, setDisplay, setInputText }) => {
 					{capitalize(word)}
 				</h1>
 			</div>
-			<div className="w-full grid grid-cols-1 md:grid-cols-2 p-2 bg-transparent-20 lg:grid-cols-1 gap-4 overflow-auto justify-center">
+			<div className="scrollbar w-full grid grid-cols-1 md:grid-cols-2 p-2 bg-transparent-20 lg:grid-cols-1 gap-4 overflow-auto justify-center">
 				{notes.map((note, i) => (
 					<div key={i} className="w-full max-w-xs mx-auto p-2 bg-yellow-200">
 						<p>{note.length < 125 ? note : `${note.slice(0, 120)}...`}</p>

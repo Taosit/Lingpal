@@ -8,25 +8,54 @@ const NotesRoom = () => {
 	const { players, initializePlayers, updatePlayerNotes, round } =
 		usePlayerContext();
 
+	const allowedTime = 10;
+
 	const [activeNote, setActiveNote] = useState(null);
 	const [word, setWord] = useState(null);
 	const [notes, setNotes] = useState(["", "", "", ""]);
+	const [time, setTime] = useState(null);
+	let timeInterval;
 
 	console.log({ players });
 
-	// const word = players[0].words[round];
+	const navigate = useNavigate();
 
 	const capitalize = word => {
 		return word.replace(word[0], word[0].toUpperCase());
 	};
 
-	const navigate = useNavigate();
+	const formatTime = time => {
+		const minutes = Math.floor(time / 60);
+		const seconds = time % 60;
+		return `${minutes}:${seconds}`;
+	};
+
+	const getEndTime = timeValue => {
+		let time = new Date();
+		time.setSeconds(time.getSeconds() + parseInt(timeValue));
+		return time.getTime();
+	};
 
 	useEffect(() => {
 		console.log({ round });
 		if (!round) {
 			initializePlayers();
 		}
+
+		const endTimeResult = getEndTime(allowedTime);
+		setTime(allowedTime);
+
+		timeInterval = setInterval(() => {
+			console.log("time changes");
+			const updatedTime = Math.round(
+				(endTimeResult - new Date().getTime()) / 1000
+			);
+			setTime(updatedTime);
+		}, 1000);
+
+		return () => {
+			clearInterval(timeInterval);
+		};
 	}, []);
 
 	useEffect(() => {
@@ -34,6 +63,11 @@ const NotesRoom = () => {
 			setWord(players[0].words[round]);
 		}
 	}, [players]);
+
+	useEffect(() => {
+		if (time >= 0) return;
+		play();
+	}, [time]);
 
 	const play = () => {
 		const writtenNotes = notes.filter(note => note !== "");
@@ -112,7 +146,7 @@ const NotesRoom = () => {
 					</div>
 					<div className="w-full">
 						<p className="text-center md:text-lg">
-							Game starts in 0:37
+							Game starts in {formatTime(time)}
 							<span className="bg-yellow-300 rounded px-8" onClick={play}>
 								Start
 							</span>
