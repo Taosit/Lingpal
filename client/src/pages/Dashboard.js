@@ -1,13 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import defaultAvatar from "../assets/default_avatar.png";
+import { Image } from "cloudinary-react";
+import Compressor from "compressorjs";
 import { useAuthContext } from "../contexts/AuthContext";
+import useAuthAxios from "../utils/authAxios";
 import lingpalIcon from "../assets/lingpal.png";
 import notesIcon from "../assets/notes.png";
 import recordingsIcon from "../assets/recordings.png";
+import uploadIcon from "../assets/upload-image.png";
 
 const Dashboard = () => {
-	const { user, setUser } = useAuthContext();
+	const { user, setUser, accessToken, setAccessToken } = useAuthContext();
+	const authAxios = useAuthAxios();
 
 	const win = (user.total ? user.win / user.total : 0).toFixed(3) * 100;
 	const hardPlayer =
@@ -15,18 +19,52 @@ const Dashboard = () => {
 
 	const navigate = useNavigate();
 
+	const compress = (file, options) => {
+		return new Promise((resolve, reject) => {
+			new Compressor(file, {
+				...options,
+				success(result) {
+					resolve(result);
+				},
+				error(err) {
+					reject(err);
+				},
+			});
+		});
+	};
+
+	const uploadImage = async imageFile => {
+		console.log("uploading");
+		if (!imageFile) return;
+		const allowedType = ["image/jpeg", "image/jpg", "image/png"];
+		if (!allowedType.includes(imageFile.type)) {
+			console.log("file not supported");
+			return;
+		}
+		if (imageFile.size > 100000) {
+			imageFile = await compress(imageFile, { maxWidth: 500 });
+		}
+		const reader = new FileReader();
+		reader.readAsDataURL(imageFile);
+		reader.onloadend = () => {
+			authAxios
+				.post("/upload-image", {
+					data: reader.result,
+				})
+				.then(response => {
+					setUser(prev => ({ ...prev, avatar: response.data.id }));
+				});
+		};
+	};
+
 	const play = () => {
 		navigate("/game-settings");
 	};
 
-	const refreshToken = () => {
-		fetch("http://localhost:5000/refresh-token", {
-			credentials: "include",
-		}).then(() => {});
-	};
-
 	const logout = () => {
-		fetch("http://localhost:5000/logout").then(() => setUser(null));
+		fetch("http://localhost:5000/logout", {
+			credentials: "include",
+		}).then(() => setUser(null));
 	};
 
 	return (
@@ -55,13 +93,32 @@ const Dashboard = () => {
 					<div className="w-full flex justify-center items-center">
 						<div className="flex flex-col items-start">
 							<div className="flex justify-center items-center">
-								<div
-									className={`w-12 h-12 md:w-16 md:h-16 rounded-full bg-red-300 overflow-hidden`}
-								>
-									<img
-										className="rounded-full object-contain object-center"
-										src={user.avatar || defaultAvatar}
-									/>
+								<div className="relative">
+									<div
+										className={`w-12 h-12 md:w-16 md:h-16 rounded-full bg-red-300 overflow-hidden`}
+									>
+										<Image
+											className="rounded-full object-contain object-center"
+											cloudName={process.env.REACT_APP_CLOUDINARY_NAME}
+											publicId={user.avatar || "nruwutqaihxyl7sq6ilm"}
+											width="300"
+											crop="scale"
+										/>
+									</div>
+									<label className="absolute bottom-0 -right-2 cursor-pointer">
+										<span>
+											<img
+												className="w-5 h-5"
+												src={uploadIcon}
+												alt="upload image"
+											/>
+										</span>
+										<input
+											onChange={e => uploadImage(e.target.files[0])}
+											type="file"
+											className="hidden"
+										/>
+									</label>
 								</div>
 								<p className="pl-2 sm:pl-4 md:text-xl font-bold">
 									{user.username}
@@ -89,12 +146,6 @@ const Dashboard = () => {
 					</div>
 				</div>
 				<div className="w-full flex justify-end">
-					<p
-						onClick={refreshToken}
-						className="mt-2 cursor-pointer text-red-700 font-semibold"
-					>
-						refresh token
-					</p>
 					<p
 						onClick={logout}
 						className="mt-2 cursor-pointer text-red-700 font-semibold"

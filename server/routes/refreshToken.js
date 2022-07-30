@@ -14,7 +14,7 @@ router.get("/", async (req, res) => {
 		if (err || decoded.email !== user.email) return res.sendStatus(403);
 		console.log("getting new access token");
 		const accessToken = jwt.sign(
-			{ username: decoded.username },
+			{ email: decoded.email },
 			process.env.ACCESS_TOKEN_SECRET,
 			{ expiresIn: "60s" }
 		);

@@ -4,6 +4,7 @@ const User = require("../model/User");
 
 router.get("/", async (req, res) => {
 	const refreshToken = req.cookies?.jwt;
+	console.log(refreshToken);
 	if (!refreshToken) return res.sendStatus(204);
 	res.clearCookie("jwt", { httpOnly: true });
 

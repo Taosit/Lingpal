@@ -22,7 +22,7 @@ const SignIn = () => {
 		const body = JSON.stringify({ email, password });
 		fetch("http://localhost:5000/login", {
 			method: "POST",
-			// credentials: "include",
+			credentials: "include",
 			headers: {
 				"Content-Type": "application/json",
 			},
