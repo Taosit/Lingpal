@@ -11,13 +11,8 @@ const ChatBox = ({
 }) => {
 	const windowSize = useWindowSize();
 	const lastMessageRef = useRef();
-	const [disableSend, setDisableSend] = useState(false);
 
 	const sendMessage = () => {
-		if (!clientIsDescriber) {
-			setDisableSend(true);
-			setTimeout(() => setDisableSend(false), 5000);
-		}
 		setInputText("");
 		appendMessage(inputText);
 	};
@@ -30,8 +25,6 @@ const ChatBox = ({
 		if (!lastMessageRef.current) return;
 		lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
-
-	console.log({ messages });
 
 	return (
 		<div
@@ -90,7 +83,7 @@ const ChatBox = ({
 					</div>
 				))}
 			</div>
-			{!clientIsDescriber && (
+			{/* {!clientIsDescriber && (
 				<div className="w-full h-2 rounded-full bg-yellow-300 flex items-center">
 					<div
 						className={`h-1 rounded-full bg-orange-500 ${
@@ -98,7 +91,7 @@ const ChatBox = ({
 						}`}
 					></div>
 				</div>
-			)}
+			)} */}
 			<textarea
 				value={inputText}
 				onChange={e => setInputText(e.target.value)}
@@ -114,7 +107,6 @@ const ChatBox = ({
 					</button>
 				)}
 				<button
-					disabled={disableSend}
 					className="mb-2 px-6 py-1 rounded-xl bg-blue-500 text-white sm:text-xl disabled:bg-blue-200"
 					onClick={() => sendMessage()}
 				>

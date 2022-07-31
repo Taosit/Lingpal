@@ -17,8 +17,6 @@ const GameRoom = () => {
 	const client = 0;
 	let { words, notes } = players[describer];
 
-	console.log({ word: words[round] });
-
 	const navigate = useNavigate();
 
 	const timePerRound = 15;
@@ -38,7 +36,7 @@ const GameRoom = () => {
 
 	useEffect(() => {
 		if ((describer < 3 && time >= 0) || (describer === 3 && time >= 1)) return;
-		console.log("past return");
+		setDisplay("chatbox");
 		clearInterval(timeInterval);
 		setMessages(prev => [
 			...prev,
@@ -66,14 +64,12 @@ const GameRoom = () => {
 	}, [time]);
 
 	useEffect(() => {
-		setDisplay("chatbox");
 		const endTimeResult = getEndTime(timePerRound);
 		setTime(timePerRound);
 
-		console.log("in use effect");
+		console.log({ word: words[round] });
 
 		timeInterval = setInterval(() => {
-			console.log("time changes");
 			const updatedTime = Math.round(
 				(endTimeResult - new Date().getTime()) / 1000
 			);
@@ -156,6 +152,10 @@ const GameRoom = () => {
 		return `${minutes}:${seconds}`;
 	};
 
+	const leaveGame = () => {
+		navigate("/dashboard");
+	};
+
 	return (
 		<BackgroundTemplate>
 			<div className="h-full w-full px-4 sm:px-8 py-8 grid grid-rows-layout6 gap-2 sm:gap-4">
@@ -191,7 +191,13 @@ const GameRoom = () => {
 						))}
 				</div>
 				<div className="flex justify-between items-center">
-					<div className={describer === client ? "" : "w-20 sm:w-24 h-2"}></div>
+					{/* <div className={describer === client ? "" : "w-20 sm:w-24 h-2"}></div> */}
+					<button
+						onClick={() => leaveGame()}
+						className="mr-4 py-1 px-2 rounded-lg bg-red-600 text-white font-semibold text-sm sm:text-base z-10"
+					>
+						Quit
+					</button>
 					<div className="flex items-center">
 						<img src={timerIcon} alt="time ramaining" />
 						<p className="ml-2 text-white font-semibold md:text-xl">
@@ -199,7 +205,7 @@ const GameRoom = () => {
 						</p>
 					</div>
 					{describer === client ? (
-						<div></div>
+						<div className="w-20 sm:w-24 h-2"></div>
 					) : (
 						<button className="py-1 px-2 rounded-lg bg-red-600 text-white font-semibold text-sm sm:text-base z-10">
 							Rule Break

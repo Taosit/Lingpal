@@ -231,6 +231,7 @@ html {
 	background-position: 50%;
 	transition: 1s;
 	position: relative;
+	clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
 }
 
 .orange-gradient {
@@ -274,9 +275,9 @@ html {
 
 .big-star {
 	position: absolute;
-	top: 28%;
+	top: 20%;
 	left: 1em;
-	width: clamp(250px, 45%, 550px);
+	width: clamp(250px, 45%, 450px);
 	aspect-ratio: 4/3;
 	background: linear-gradient(
 				to bottom right,

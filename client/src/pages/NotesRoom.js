@@ -8,15 +8,13 @@ const NotesRoom = () => {
 	const { players, initializePlayers, updatePlayerNotes, round } =
 		usePlayerContext();
 
-	const allowedTime = 10;
+	const allowedTime = 20;
 
 	const [activeNote, setActiveNote] = useState(null);
 	const [word, setWord] = useState(null);
 	const [notes, setNotes] = useState(["", "", "", ""]);
 	const [time, setTime] = useState(null);
 	let timeInterval;
-
-	console.log({ players });
 
 	const navigate = useNavigate();
 
@@ -46,7 +44,6 @@ const NotesRoom = () => {
 		setTime(allowedTime);
 
 		timeInterval = setInterval(() => {
-			console.log("time changes");
 			const updatedTime = Math.round(
 				(endTimeResult - new Date().getTime()) / 1000
 			);

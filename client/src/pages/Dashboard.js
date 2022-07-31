@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Image } from "cloudinary-react";
 import Compressor from "compressorjs";
 import { useAuthContext } from "../contexts/AuthContext";
-import useAuthAxios from "../utils/authAxios";
+import useAuthAxios from "../hooks/useAuthAxios";
 import lingpalIcon from "../assets/lingpal.png";
 import notesIcon from "../assets/notes.png";
 import recordingsIcon from "../assets/recordings.png";
 import uploadIcon from "../assets/upload-image.png";
 
 const Dashboard = () => {
-	const { user, setUser, accessToken, setAccessToken } = useAuthContext();
+	const { user, setUser } = useAuthContext();
 	const authAxios = useAuthAxios();
 
 	const win = (user.total ? user.win / user.total : 0).toFixed(3) * 100;
@@ -70,10 +70,7 @@ const Dashboard = () => {
 	return (
 		<div className="light-yellow h-screen overflow-hidden">
 			<div className="relative top-0 z-10 w-full flex justify-start">
-				<div
-					onClick={() => navigate("/")}
-					className="cursor-pointer flex items-center m-2 sm:ml-8 sm:mt-4"
-				>
+				<div className="flex items-center m-2 sm:ml-8 sm:mt-4">
 					<div className="w-12 sm:w-12 md:w-16">
 						<img src={lingpalIcon} alt="Langpal" />
 					</div>
