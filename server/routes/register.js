@@ -1,4 +1,5 @@
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const User = require("../model/User");
 const bcrypt = require("bcrypt");
 
@@ -16,7 +17,9 @@ router.post("/", async (req, res) => {
 		const hashedPwd = await bcrypt.hash(password, 10);
 		const user = await User.create({ username, email, password: hashedPwd });
 
-		const userCopy = { ...user._doc, password: null };
+		delete user.refreshToken;
+		delete user.password;
+
 		const accessToken = jwt.sign(
 			{ email: email },
 			process.env.ACCESS_TOKEN_SECRET,
@@ -34,7 +37,7 @@ router.post("/", async (req, res) => {
 			// secure: true,
 			maxAge: 24 * 60 * 60 * 1000,
 		});
-		res.status(200).json({ accessToken, user: userCopy });
+		res.status(200).json({ accessToken, user });
 	} catch (error) {
 		console.log(error);
 		res.sendStatus(400);

@@ -5,7 +5,6 @@ import {
 	Navigate,
 	Link,
 } from "react-router-dom";
-import AuthTemplate from "./components/AuthTemplate";
 import PersistLogin from "./components/PersistLogin";
 import PrivateRoute from "./components/PrivateRoute";
 import Dashboard from "./pages/Dashboard";

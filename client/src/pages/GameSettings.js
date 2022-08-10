@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useSettingContext } from "../contexts/SettingContext";
 import BackgroundTemplate from "../components/BackgroundTemplate";
+import { usePlayerContext } from "../contexts/PlayerContext";
 
 const optionVariants = {
 	hidden: {
@@ -20,9 +21,14 @@ const GameSettings = () => {
 		settings: { mode, level, describer },
 		updateSetting,
 	} = useSettingContext();
+	const { setInGame } = usePlayerContext();
 
 	const [animateText, setAnimateText] = useState(false);
 	const [animateVoice, setAnimateVoice] = useState(false);
+
+	useEffect(() => {
+		setInGame(true);
+	}, []);
 
 	useEffect(() => {
 		if (!describer) return;

@@ -4,8 +4,8 @@ import AuthTemplate from "../components/AuthTemplate";
 import { useAuthContext } from "../contexts/AuthContext";
 
 const SignIn = () => {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+	const [email, setEmail] = useState("taosit099@gmail.com");
+	const [password, setPassword] = useState("test123");
 	const [showPassword, setShowPassword] = useState(false);
 	const [error, setError] = useState(null);
 

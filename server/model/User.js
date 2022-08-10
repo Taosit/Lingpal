@@ -27,7 +27,10 @@ const userSchema = new Schema({
 		type: Number,
 		default: 0,
 	},
-	avatar: String,
+	avatar: {
+		type: String,
+		default: "nruwutqaihxyl7sq6ilm",
+	},
 });
 
 module.exports = mongoose.model("User", userSchema);

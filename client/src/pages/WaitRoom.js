@@ -1,23 +1,43 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BackgroundTemplate from "../components/BackgroundTemplate";
-import defaultAvatar from "../assets/default_avatar.png";
+import { Image } from "cloudinary-react";
 import avatar4 from "../assets/avatar4.jpg";
 import { usePlayerContext } from "../contexts/PlayerContext";
 import WhiteboardTemplate from "../components/WhiteboardTemplate";
+import { useSettingContext } from "../contexts/SettingContext";
+import { useSocketContext } from "../contexts/SocketContext";
+import { useAuthContext } from "../contexts/AuthContext";
 
 const Waitroom = () => {
-	const { players, addPlayer } = usePlayerContext();
+	const { players, setPlayers, setInGame, setRoomId } = usePlayerContext();
+	const { settings } = useSettingContext();
+	const { socket } = useSocketContext();
+	const { user } = useAuthContext();
+
+	useEffect(() => {
+		console.log("emiting join-room");
+		socket.emit("join-room", { settings, user });
+		socket.on("note-time", ({ players, roomId }) => {
+			setPlayers(players);
+			setRoomId(roomId);
+			navigate("/notes-room");
+		});
+
+		// return () => socket.emit("leave-room", { settings, user });
+	}, []);
 
 	const navigate = useNavigate();
 
 	const leaveRoom = () => {
 		navigate("/dashboard");
+		console.log("leave room");
+		socket.emit("leave-room", { settings, user });
+		setTimeout(() => setInGame(false), 0);
 	};
 
 	const play = () => {
-		addPlayer({ username: "Lucy", win: 72, avatar: avatar4 });
-		navigate("/notes-room");
+		// TODO: manual game start
 	};
 
 	return (
@@ -36,14 +56,16 @@ const Waitroom = () => {
 						</div>
 					</div>
 					<div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-2">
-						{players.map((player, i) => (
+						{Object.values(players).map((player, i) => (
 							<div key={i} className="player-card">
 								<div className="w-1/3">
 									<div className="h-10 w-10 md:h-16 md:w-16 rounded-full overflow-clip mr-1">
-										<img
-											className="object-cover"
-											src={player?.avatar || defaultAvatar}
-											alt="avatar"
+										<Image
+											className="rounded-full object-contain object-center"
+											cloudName={process.env.REACT_APP_CLOUDINARY_NAME}
+											publicId={player.avatar}
+											width="300"
+											crop="scale"
 										/>
 									</div>
 								</div>

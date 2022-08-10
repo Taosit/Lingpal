@@ -2,19 +2,20 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BackgroundTemplate from "../components/BackgroundTemplate";
 import WhiteboardTemplate from "../components/WhiteboardTemplate";
+import { useAuthContext } from "../contexts/AuthContext";
 import { usePlayerContext } from "../contexts/PlayerContext";
+import { useSocketContext } from "../contexts/SocketContext";
 
 const NotesRoom = () => {
-	const { players, initializePlayers, updatePlayerNotes, round } =
-		usePlayerContext();
+	const { players, updatePlayerNotes, round, roomId } = usePlayerContext();
 
-	const allowedTime = 20;
+	const { socket } = useSocketContext();
+	const { user } = useAuthContext();
 
 	const [activeNote, setActiveNote] = useState(null);
 	const [word, setWord] = useState(null);
 	const [notes, setNotes] = useState(["", "", "", ""]);
-	const [time, setTime] = useState(null);
-	let timeInterval;
+	const [time, setTime] = useState(30);
 
 	const navigate = useNavigate();
 
@@ -28,47 +29,40 @@ const NotesRoom = () => {
 		return `${minutes}:${seconds}`;
 	};
 
-	const getEndTime = timeValue => {
-		let time = new Date();
-		time.setSeconds(time.getSeconds() + parseInt(timeValue));
-		return time.getTime();
-	};
-
 	useEffect(() => {
 		console.log({ round });
-		if (!round) {
-			initializePlayers();
+
+		if (!players[user._id].order) {
+			console.log("emitting new turn");
+			socket.emit("set-timer", (roomId, 10));
 		}
 
-		const endTimeResult = getEndTime(allowedTime);
-		setTime(allowedTime);
-
-		timeInterval = setInterval(() => {
-			const updatedTime = Math.round(
-				(endTimeResult - new Date().getTime()) / 1000
-			);
+		socket.on("time-update", updatedTime => {
 			setTime(updatedTime);
-		}, 1000);
-
-		return () => {
-			clearInterval(timeInterval);
-		};
+		});
+		return () => socket.off("time-update");
 	}, []);
 
 	useEffect(() => {
-		if (players[0].words) {
-			setWord(players[0].words[round]);
-		}
-	}, [players]);
-
-	useEffect(() => {
-		if (time >= 0) return;
+		if (time > 0) return;
 		play();
 	}, [time]);
 
+	useEffect(() => {
+		console.log({ players });
+		if (players[user._id].words) {
+			setWord(players[user._id].words[round]);
+		}
+	}, [players]);
+
 	const play = () => {
 		const writtenNotes = notes.filter(note => note !== "");
-		updatePlayerNotes(0, writtenNotes);
+		updatePlayerNotes(user._id, writtenNotes);
+		console.log({ user });
+		if (!players[user._id].order) {
+			console.log("emitting new turn");
+			socket.emit("set-timer", (roomId, 12));
+		}
 		navigate("/game-room");
 	};
 

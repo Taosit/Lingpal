@@ -15,7 +15,10 @@ router.post("/", async (req, res) => {
 	if (!match) {
 		return res.sendStatus(401);
 	}
-	const userCopy = { ...user._doc, password: null };
+
+	delete user.refreshToken;
+	delete user.password;
+
 	const accessToken = jwt.sign(
 		{ email: email },
 		process.env.ACCESS_TOKEN_SECRET,
@@ -33,7 +36,7 @@ router.post("/", async (req, res) => {
 		// secure: true,
 		maxAge: 24 * 60 * 60 * 1000,
 	});
-	res.status(200).json({ accessToken, user: userCopy });
+	res.status(200).json({ accessToken, user });
 });
 
 module.exports = router;

@@ -1212,4 +1212,4 @@ const chooseWords = num => {
 	return [...wordSet];
 };
 
-export { chooseWords };
+module.exports = { chooseWords };

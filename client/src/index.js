@@ -5,16 +5,19 @@ import App from "./App";
 import { SettingContextProvider } from "./contexts/SettingContext";
 import { PlayerContextProvider } from "./contexts/PlayerContext";
 import { AuthContextProvider } from "./contexts/AuthContext";
+import { SocketContextProvider } from "./contexts/SocketContext";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-	<React.StrictMode>
-		<AuthContextProvider>
-			<SettingContextProvider>
-				<PlayerContextProvider>
+	// <React.StrictMode>
+	<AuthContextProvider>
+		<SettingContextProvider>
+			<PlayerContextProvider>
+				<SocketContextProvider>
 					<App />
-				</PlayerContextProvider>
-			</SettingContextProvider>
-		</AuthContextProvider>
-	</React.StrictMode>
+				</SocketContextProvider>
+			</PlayerContextProvider>
+		</SettingContextProvider>
+	</AuthContextProvider>
+	// </React.StrictMode>
 );

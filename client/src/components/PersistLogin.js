@@ -8,7 +8,6 @@ const PersistLogin = () => {
 
 	useEffect(() => {
 		const verifyToken = async () => {
-			console.log("in verify token");
 			try {
 				const res = await fetch("http://localhost:5000/refresh-token", {
 					credentials: "include",
