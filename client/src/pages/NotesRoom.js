@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import BackgroundTemplate from "../components/BackgroundTemplate";
 import WhiteboardTemplate from "../components/WhiteboardTemplate";
 import { useAuthContext } from "../contexts/AuthContext";
-import { usePlayerContext } from "../contexts/PlayerContext";
+import { useGameContext } from "../contexts/GameContext";
 import { useSocketContext } from "../contexts/SocketContext";
+import { NOTE_TIME, TURN_TIME } from "../utils/constants";
 
 const NotesRoom = () => {
-	const { players, updatePlayerNotes, round, roomId } = usePlayerContext();
+	const { players, setPlayers, round, roomId } = useGameContext();
 
 	const { socket } = useSocketContext();
 	const { user } = useAuthContext();
@@ -15,7 +16,7 @@ const NotesRoom = () => {
 	const [activeNote, setActiveNote] = useState(null);
 	const [word, setWord] = useState(null);
 	const [notes, setNotes] = useState(["", "", "", ""]);
-	const [time, setTime] = useState(30);
+	const [time, setTime] = useState(NOTE_TIME);
 
 	const navigate = useNavigate();
 
@@ -32,13 +33,19 @@ const NotesRoom = () => {
 	useEffect(() => {
 		console.log({ round });
 
-		if (!players[user._id].order) {
-			console.log("emitting new turn");
-			socket.emit("set-timer", (roomId, 10));
+		if (players[user._id].order === 0) {
+			//only one player emits
+			console.log("emitting new round");
+			console.log("sending roomId", roomId);
+			socket.emit("note-time", { roomId, time: NOTE_TIME });
 		}
 
 		socket.on("time-update", updatedTime => {
 			setTime(updatedTime);
+		});
+
+		socket.on("update-notes", players => {
+			setPlayers(players);
 		});
 		return () => socket.off("time-update");
 	}, []);
@@ -57,11 +64,16 @@ const NotesRoom = () => {
 
 	const play = () => {
 		const writtenNotes = notes.filter(note => note !== "");
-		updatePlayerNotes(user._id, writtenNotes);
+		// updatePlayerNotes(user._id, writtenNotes);
+		socket.emit("save-notes", {
+			userId: user._id,
+			roomId,
+			notes: writtenNotes,
+		});
 		console.log({ user });
-		if (!players[user._id].order) {
-			console.log("emitting new turn");
-			socket.emit("set-timer", (roomId, 12));
+		if (players[user._id].order === 0) {
+			console.log("starting a new round");
+			socket.emit("start-round", { roomId, time: TURN_TIME });
 		}
 		navigate("/game-room");
 	};

@@ -16,6 +16,7 @@ const setTimer = (io, room, allowdTime, callback = null) => {
 			// callback();
 		}
 	}, 1000);
+	return interval;
 };
 
 const initializePlayers = players => {
@@ -31,4 +32,22 @@ const initializePlayers = players => {
 	return newPlayers;
 };
 
-module.exports = { setTimer, initializePlayers };
+const updatePlayerNotes = (players, playerId, notes) => {
+	const playerToUpdate = players[playerId];
+	return { ...players, [playerId]: { ...playerToUpdate, notes } };
+};
+
+const increasePlayerScore = (players, playerId, earnedScore) => {
+	const scoringPlayer = players[playerId];
+	return {
+		...players,
+		[playerId]: { ...scoringPlayer, score: scoringPlayer.score + earnedScore },
+	};
+};
+
+module.exports = {
+	setTimer,
+	initializePlayers,
+	updatePlayerNotes,
+	increasePlayerScore,
+};

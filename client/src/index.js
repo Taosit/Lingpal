@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import { SettingContextProvider } from "./contexts/SettingContext";
-import { PlayerContextProvider } from "./contexts/PlayerContext";
+import { GameContextProvider } from "./contexts/GameContext";
 import { AuthContextProvider } from "./contexts/AuthContext";
 import { SocketContextProvider } from "./contexts/SocketContext";
 
@@ -12,11 +12,11 @@ root.render(
 	// <React.StrictMode>
 	<AuthContextProvider>
 		<SettingContextProvider>
-			<PlayerContextProvider>
+			<GameContextProvider>
 				<SocketContextProvider>
 					<App />
 				</SocketContextProvider>
-			</PlayerContextProvider>
+			</GameContextProvider>
 		</SettingContextProvider>
 	</AuthContextProvider>
 	// </React.StrictMode>

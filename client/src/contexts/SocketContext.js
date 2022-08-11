@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect } from "react";
 import { useSocket } from "../hooks/useSocket";
-import { usePlayerContext } from "./PlayerContext";
+import { useGameContext } from "./GameContext";
 import { useSettingContext } from "./SettingContext";
 
 const SocketContext = createContext();
@@ -13,7 +13,7 @@ const SocketContextProvider = ({ children }) => {
 	const { socket, online, connectSocket, disconnectSocket } = useSocket(
 		"http://localhost:5000"
 	);
-	const { inGame, setPlayers } = usePlayerContext();
+	const { inGame, setPlayers } = useGameContext();
 
 	useEffect(() => {
 		if (inGame) {

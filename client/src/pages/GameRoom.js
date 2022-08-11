@@ -2,17 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Image } from "cloudinary-react";
 import { useNavigate } from "react-router-dom";
 import BackgroundTemplate from "../components/BackgroundTemplate";
-import { usePlayerContext } from "../contexts/PlayerContext";
+import { useGameContext } from "../contexts/GameContext";
 import useWindowSize from "../hooks/useWindowSize";
 import timerIcon from "../assets/timer.png";
 import ChatBox from "../components/ChatBox";
 import Notes from "../components/Notes";
 import { useSocketContext } from "../contexts/SocketContext";
 import { useAuthContext } from "../contexts/AuthContext";
+import { ROUND_NUMBER, TURN_TIME } from "../utils/constants";
 
 const GameRoom = () => {
-	const { players, setPlayers, increasePlayerScore, round, setRound, roomId } =
-		usePlayerContext();
+	const { players, setPlayers, round, setRound, roomId } = useGameContext();
 	const { socket } = useSocketContext();
 	const { user } = useAuthContext();
 	const windowSize = useWindowSize();
@@ -47,15 +47,36 @@ const GameRoom = () => {
 		return describer._id === user._id;
 	};
 
+	console.log({ players, round, describerIndex, words });
+
 	useEffect(() => {
 		console.log({ players });
 		socket.on("time-update", time => {
 			setTime(time);
 		});
+		socket.on("receive-message", message => {
+			setMessages(prev => [...prev, message]);
+		});
+		socket.on("turn-end", info => endTurn(...info));
+		socket.on("update-players", players => setPlayers(players));
 	}, []);
 
 	useEffect(() => {
-		console.log("use effect", { describerIndex, playerNumber, time });
+		const message = {
+			sender: null,
+			isBot: true,
+			isDescriber: null,
+			text: `It's ${
+				userIsDescriber() ? "your" : `${describer.username}'s`
+			} turn.`,
+		};
+		setTimeout(() => {
+			setMessages(prev => [...prev, message]);
+		}, 1000);
+	}, [describerIndex]);
+
+	useEffect(() => {
+		console.log("use effect", { time });
 		if (time === null || time > 0) return;
 		setDisplay("chatbox");
 		setMessages(prev => [
@@ -77,13 +98,13 @@ const GameRoom = () => {
 									? "your"
 									: `${getNextDescriber()}'s`
 						  } turn.`
-						: `The ${round < 2 ? "round" : "game"} ends`,
+						: `The ${round < ROUND_NUMBER - 1 ? "round" : "game"} ends`,
 			},
 		]);
 
 		setTimeout(
 			() => {
-				endTurn();
+				endTurn(round, describerIndex);
 			},
 			describerIndex === playerNumber - 1 ? 3000 : 1000
 		);
@@ -95,67 +116,28 @@ const GameRoom = () => {
 		});
 	}, []);
 
-	const endTurn = () => {
+	const endTurn = (round, describerIndex) => {
 		console.log("turn ended");
-		if (round == 2 && describerIndex === playerNumber - 1) {
-			//Game over
+		if (round == ROUND_NUMBER - 1 && describerIndex === playerNumber - 1) {
+			// Game over
+			console.log("game over");
 		} else {
+			console.log({ round, describerIndex });
 			if (describerIndex === playerNumber - 1) {
 				// New round
-				setRound(prev => prev + 1);
+				console.log("new round");
+				setRound(round + 1);
 				navigate("/notes-room");
 			} else {
-				if (!players[user._id].order) {
+				// Change describer
+				console.log("new turn");
+				if (players[user._id].order === 0) {
 					console.log("emitting new turn");
-					socket.emit("set-timer", (roomId, 12));
+					socket.emit("new-turn", { roomId, time: TURN_TIME });
 				}
 				console.log("increasing des index");
 				setDescriberIndex(prev => prev + 1);
 			}
-		}
-	};
-
-	const appendMessage = text => {
-		if (text.toLowerCase().includes(words[round])) {
-			setMessages(prev => [
-				...prev,
-				{
-					sender: user.username,
-					isBot: false,
-					isDescriber: userIsDescriber(),
-					text,
-				},
-				{
-					sender: null,
-					isBot: true,
-					isDescriber: null,
-					text: `The correct word is ${words[round]}. You got it right! Well done!`,
-				},
-				{
-					sender: null,
-					isBot: true,
-					isDescriber: null,
-					text:
-						describerIndex !== playerNumber - 1
-							? `Now it's ${
-									describerIndex + 1 === userIndex
-										? "your"
-										: `${getNextDescriber()}'s`
-							  } turn.`
-							: "The round ends",
-				},
-			]);
-			endTurn();
-			increasePlayerScore(user._id, 1);
-		} else {
-			setMessages(prev => [
-				...prev,
-				{
-					sender: user.username,
-					isDescriber: userIsDescriber(),
-					text,
-				},
-			]);
 		}
 	};
 
@@ -233,8 +215,8 @@ const GameRoom = () => {
 							inputText={inputText}
 							setInputText={setInputText}
 							messages={messages}
-							appendMessage={appendMessage}
-							clientIsDescriber={userIsDescriber()}
+							word={words[round]}
+							describerId={describer._id}
 							setDisplay={setDisplay}
 						/>
 						<Notes
@@ -249,8 +231,8 @@ const GameRoom = () => {
 						inputText={inputText}
 						setInputText={setInputText}
 						messages={messages}
-						appendMessage={appendMessage}
-						clientIsDescriber={userIsDescriber()}
+						word={words[round]}
+						describerId={describer._id}
 						setDisplay={setDisplay}
 					/>
 				) : (

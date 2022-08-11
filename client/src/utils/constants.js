@@ -1,0 +1,5 @@
+const NOTE_TIME = 5;
+const TURN_TIME = 20;
+const ROUND_NUMBER = 2;
+
+export { NOTE_TIME, TURN_TIME, ROUND_NUMBER };

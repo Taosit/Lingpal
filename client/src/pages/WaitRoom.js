@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 import BackgroundTemplate from "../components/BackgroundTemplate";
 import { Image } from "cloudinary-react";
 import avatar4 from "../assets/avatar4.jpg";
-import { usePlayerContext } from "../contexts/PlayerContext";
+import { useGameContext } from "../contexts/GameContext";
 import WhiteboardTemplate from "../components/WhiteboardTemplate";
 import { useSettingContext } from "../contexts/SettingContext";
 import { useSocketContext } from "../contexts/SocketContext";
 import { useAuthContext } from "../contexts/AuthContext";
 
 const Waitroom = () => {
-	const { players, setPlayers, setInGame, setRoomId } = usePlayerContext();
+	const { players, setPlayers, setInGame, setRoomId } = useGameContext();
 	const { settings } = useSettingContext();
 	const { socket } = useSocketContext();
 	const { user } = useAuthContext();
@@ -18,9 +18,10 @@ const Waitroom = () => {
 	useEffect(() => {
 		console.log("emiting join-room");
 		socket.emit("join-room", { settings, user });
-		socket.on("note-time", ({ players, roomId }) => {
+		socket.on("game-start", ({ players, roomId }) => {
 			setPlayers(players);
 			setRoomId(roomId);
+			console.log("setting room id");
 			navigate("/notes-room");
 		});
 
