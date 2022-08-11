@@ -6,14 +6,13 @@ const getEndTime = timeValue => {
 	return time.getTime();
 };
 
-const setTimer = (io, room, allowdTime, callback = null) => {
+const setTimer = (io, room, allowdTime) => {
 	const endTime = getEndTime(allowdTime);
 	const interval = setInterval(() => {
 		const updatedTime = Math.round((endTime - new Date().getTime()) / 1000);
 		io.to(room).emit("time-update", updatedTime);
 		if (updatedTime <= 0) {
 			clearInterval(interval);
-			// callback();
 		}
 	}, 1000);
 	return interval;

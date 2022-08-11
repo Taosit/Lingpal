@@ -9,15 +9,22 @@ import ChatBox from "../components/ChatBox";
 import Notes from "../components/Notes";
 import { useSocketContext } from "../contexts/SocketContext";
 import { useAuthContext } from "../contexts/AuthContext";
-import { ROUND_NUMBER, TURN_TIME } from "../utils/constants";
+import { NOTE_TIME, ROUND_NUMBER, TURN_TIME } from "../utils/constants";
 
 const GameRoom = () => {
-	const { players, setPlayers, round, setRound, roomId } = useGameContext();
+	const {
+		players,
+		setPlayers,
+		round,
+		setRound,
+		describerIndex,
+		setDescriberIndex,
+		roomId,
+	} = useGameContext();
+
 	const { socket } = useSocketContext();
 	const { user } = useAuthContext();
 	const windowSize = useWindowSize();
-
-	const [describerIndex, setDescriberIndex] = useState(0);
 
 	const playerArray = Object.values(players).sort(
 		(player1, player2) => player1.order - player2.order
@@ -47,8 +54,6 @@ const GameRoom = () => {
 		return describer._id === user._id;
 	};
 
-	console.log({ players, round, describerIndex, words });
-
 	useEffect(() => {
 		console.log({ players });
 		socket.on("time-update", time => {
@@ -57,8 +62,40 @@ const GameRoom = () => {
 		socket.on("receive-message", message => {
 			setMessages(prev => [...prev, message]);
 		});
-		socket.on("turn-end", info => endTurn(...info));
-		socket.on("update-players", players => setPlayers(players));
+		socket.on("correct-answer", players => {
+			setPlayers(players);
+			console.log("on correct-answer");
+			endTurn();
+		});
+		socket.on("turn-updated", ({ newRound, newDescriberIndex }) => {
+			setRound(newRound);
+			setDescriberIndex(newDescriberIndex);
+			setTimeout(() => {
+				if (players[user._id].order === 0) {
+					console.log("emitting turn-time");
+					socket.emit("turn-time", { roomId, time: TURN_TIME });
+				}
+			}, 1000);
+		});
+		socket.on("round-updated", ({ newRound, newDescriberIndex }) => {
+			setRound(newRound);
+			setDescriberIndex(newDescriberIndex);
+			if (newRound < ROUND_NUMBER) {
+				navigate("/notes-room");
+				return;
+			}
+			// TODO: Game over
+			console.log("GAME OVER");
+		});
+
+		return () => {
+			console.log("cleaning up");
+			socket.off("time-update");
+			socket.off("receive-message");
+			socket.off("correct-answer");
+			socket.off("turn-updatede");
+			socket.off("round-updated");
+		};
 	}, []);
 
 	useEffect(() => {
@@ -70,9 +107,12 @@ const GameRoom = () => {
 				userIsDescriber() ? "your" : `${describer.username}'s`
 			} turn.`,
 		};
-		setTimeout(() => {
-			setMessages(prev => [...prev, message]);
-		}, 1000);
+		setMessages(prev => [...prev, message]);
+		if (describerIndex) return;
+		if (players[user._id].order === 0) {
+			console.log("emitting turn-time");
+			socket.emit("turn-time", { roomId, time: TURN_TIME });
+		}
 	}, [describerIndex]);
 
 	useEffect(() => {
@@ -104,7 +144,7 @@ const GameRoom = () => {
 
 		setTimeout(
 			() => {
-				endTurn(round, describerIndex);
+				endTurn();
 			},
 			describerIndex === playerNumber - 1 ? 3000 : 1000
 		);
@@ -116,28 +156,10 @@ const GameRoom = () => {
 		});
 	}, []);
 
-	const endTurn = (round, describerIndex) => {
+	const endTurn = () => {
 		console.log("turn ended");
-		if (round == ROUND_NUMBER - 1 && describerIndex === playerNumber - 1) {
-			// Game over
-			console.log("game over");
-		} else {
-			console.log({ round, describerIndex });
-			if (describerIndex === playerNumber - 1) {
-				// New round
-				console.log("new round");
-				setRound(round + 1);
-				navigate("/notes-room");
-			} else {
-				// Change describer
-				console.log("new turn");
-				if (players[user._id].order === 0) {
-					console.log("emitting new turn");
-					socket.emit("new-turn", { roomId, time: TURN_TIME });
-				}
-				console.log("increasing des index");
-				setDescriberIndex(prev => prev + 1);
-			}
+		if (players[user._id].order === 0) {
+			socket.emit("update-turn", roomId);
 		}
 	};
 

@@ -75,12 +75,17 @@ mongoose.connection.once("open", () => {
 					players: newPlayers,
 					roomId: waitroom.id,
 				});
-				rooms[waitroom.id] = { players: newPlayers };
+				rooms[waitroom.id] = {
+					players: newPlayers,
+					round: 0,
+					describerIndex: 0,
+				};
 				waitroom = null;
 			}
 		});
 
 		socket.on("note-time", ({ roomId, time }) => {
+			console.log("setting note time");
 			rooms[roomId].timer = setTimer(io, roomId, time);
 		});
 
@@ -91,24 +96,31 @@ mongoose.connection.once("open", () => {
 			io.to(roomId).emit("update-notes", updatedPlayers);
 		});
 
-		socket.on("start-round", ({ roomId, time }) => {
-			const room = rooms[roomId];
-			if (room.round === null || room.round === undefined) {
-				room.round = 0;
-			} else {
-				room.round = room.round + 1;
-			}
-			console.log("setting describerIndex to 0");
-			room.describerIndex = 0;
-			room.timer = setTimer(io, roomId, time);
-			rooms[roomId] = room;
-			console.log("on start-round: ", { round: rooms[roomId].round });
+		socket.on("turn-time", ({ roomId, time }) => {
+			console.log("setting turn time");
+			rooms[roomId].timer = setTimer(io, roomId, time);
 		});
 
-		socket.on("new-turn", ({ roomId, time }) => {
-			console.log("incrementing describerIndex");
-			rooms[roomId].describerIndex++;
-			rooms[roomId].timer = setTimer(io, roomId, time);
+		socket.on("update-turn", roomId => {
+			const playerNumber = 2;
+			const roundNumber = 2;
+			const room = rooms[roomId];
+			if (room.describerIndex < playerNumber - 1) {
+				const newDescriberIndex = room.describerIndex + 1;
+				rooms[roomId].describerIndex = newDescriberIndex;
+				io.to(roomId).emit("turn-updated", {
+					newRound: room.round,
+					newDescriberIndex,
+				});
+			} else if (room.round < roundNumber - 1) {
+				const newRound = room.round + 1;
+				rooms[roomId].round = newRound;
+				rooms[roomId].describerIndex = 0;
+				io.to(roomId).emit("round-updated", {
+					newRound,
+					newDescriberIndex: 0,
+				});
+			}
 		});
 
 		socket.on("send-message", ({ message, word, roomId }) => {
@@ -131,15 +143,10 @@ mongoose.connection.once("open", () => {
 					...confirmMessage,
 					text: `The correct word is ${word}. Well done!`,
 				});
+				console.log("clearing turn interval");
 				clearInterval(rooms[roomId].timer);
-				console.log("emitting turn-end: ", { round: rooms[roomId].round });
-				io.to(roomId).emit("turn-end", [
-					rooms[roomId].round,
-					rooms[roomId].describerIndex,
-				]);
 				const players = rooms[roomId].players;
 				let updatedPlayers = increasePlayerScore(players, sender._id, 2);
-				console.log("describerIndex", rooms[roomId].describerIndex);
 				const describer = Object.values(players).find(
 					p => p.order === rooms[roomId].describerIndex
 				);
@@ -150,7 +157,8 @@ mongoose.connection.once("open", () => {
 					describer?.username
 				);
 				updatedPlayers = increasePlayerScore(updatedPlayers, describer._id, 1);
-				io.to(roomId).emit("update-players", updatedPlayers);
+				console.log("emiting correct-answer");
+				io.to(roomId).emit("correct-answer", updatedPlayers);
 			}
 		});
 

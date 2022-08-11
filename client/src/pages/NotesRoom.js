@@ -73,7 +73,7 @@ const NotesRoom = () => {
 		console.log({ user });
 		if (players[user._id].order === 0) {
 			console.log("starting a new round");
-			socket.emit("start-round", { roomId, time: TURN_TIME });
+			// socket.emit("start-round", { roomId, time: TURN_TIME });
 		}
 		navigate("/game-room");
 	};
