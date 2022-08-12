@@ -91,6 +91,26 @@ const startGame = (io, waitroom) => {
 	};
 };
 
+const calculateGameStats = players => {
+	const playerArray = Object.values(players);
+	const playersWithRank = { ...players };
+	playerArray.forEach(player => {
+		const rank = playerArray.reduce((rank, p) => {
+			if (player.score < p.score) return rank + 1;
+			return rank;
+		}, 1);
+		playersWithRank[player._id].rank = rank;
+	});
+	const rankSum = Object.values(playersWithRank).reduce((total, player) => {
+		return total + player.rank;
+	}, 0);
+	playerArray.forEach(player => {
+		playersWithRank[player._id].win =
+			playersWithRank[player._id].rank <= rankSum / playerArray.length;
+	});
+	return playersWithRank;
+};
+
 module.exports = {
 	setTimer,
 	checkGameStart,
@@ -99,4 +119,5 @@ module.exports = {
 	updatePlayerNotes,
 	getNextTurn,
 	increasePlayerScore,
+	calculateGameStats,
 };

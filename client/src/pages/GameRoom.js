@@ -25,7 +25,7 @@ const GameRoom = () => {
 	} = useGameContext();
 
 	const { socket } = useSocketContext();
-	const { user } = useAuthContext();
+	const { user, setUser } = useAuthContext();
 	const { settings } = useSettingContext();
 
 	const windowSize = useWindowSize();
@@ -134,26 +134,20 @@ const GameRoom = () => {
 	}, [socket]);
 
 	useEffect(() => {
-		socket.on("game-over", async () => {
-			const userScore = players[user._id].score;
-			const userRank = playerArray.reduce((rank, player) => {
-				if (userScore < player._score) return rank + 1;
-				return rank;
-			}, 1);
-			const userWon = userRank <= playerArray.length / 2;
+		socket.on("game-over", async players => {
+			const { win, rank } = players[user._id];
 
 			const message = {
 				sender: null,
 				isBot: true,
 				isDescriber: null,
-				text: `Game is over. Your rank is ${userRank}.${
-					userWon ? " Well done!" : ""
-				}`,
+				text: `Game is over. Your rank is ${rank}.${win ? " Well done!" : ""}`,
 			};
 
 			setMessages(prev => [...prev, message]);
 
-			const data = { win: userWon, advanced: settings.level === "hard" };
+			const advanced = settings.level === "hard";
+			const data = { win, advanced };
 
 			authAxios
 				.post("/update-stats", {
@@ -162,35 +156,42 @@ const GameRoom = () => {
 				.then(response => {
 					if (response.status === 200) {
 						console.log("User stats updated");
+						const userCopy = { ...user };
+						userCopy.total++;
+						win && userCopy.win++;
+						advanced && userCopy.advanced++;
+						setUser(userCopy);
 					} else {
 						console.log("Something went wrong");
 					}
 				});
 
 			setTimeout(() => {
-				navigate("/wait-room");
+				navigate("/dashboard");
 			}, 3000);
 		});
-
 		return () => {
 			socket.off("game-over");
 		};
 	}, [socket]);
 
 	useEffect(() => {
-		const message = {
-			sender: null,
-			isBot: true,
-			isDescriber: null,
-			text: `It's ${
-				userIsDescriber() ? "your" : `${describer.username}'s`
-			} turn to describe.`,
-		};
-		setMessages(prev => [...prev, message]);
-		if (describerIndex) return;
-		if (players[user._id].order === 0) {
-			console.log("emitting turn-time");
-			socket.emit("turn-time", { roomId, time: TURN_TIME });
+		if (!isLastPlayer()) {
+			const message = {
+				sender: null,
+				isBot: true,
+				isDescriber: null,
+				text: `It's ${
+					userIsDescriber() ? "your" : `${describer.username}'s`
+				} turn to describe.`,
+			};
+			setMessages(prev => [...prev, message]);
+		}
+		if (!describerIndex) {
+			if (players[user._id].order === 0) {
+				console.log("emitting turn-time");
+				socket.emit("turn-time", { roomId, time: TURN_TIME });
+			}
 		}
 	}, [describerIndex]);
 

@@ -13,9 +13,10 @@ const Dashboard = () => {
 	const { user, setUser } = useAuthContext();
 	const authAxios = useAuthAxios();
 
-	const win = (user.total ? user.win / user.total : 0).toFixed(3) * 100;
-	const hardPlayer =
-		(user.total ? user.advanced / user.total : 0).toFixed(3) * 100;
+	const win = !user.total ? 0 : ((user.win * 100) / user.total).toFixed(1);
+	const hardPlayer = !user.total
+		? 0
+		: ((user.advanced * 100) / user.total).toFixed(1);
 
 	const navigate = useNavigate();
 
