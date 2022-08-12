@@ -451,6 +451,20 @@ html {
 	max-width: 200px;
 }
 
+.ready-button {
+	background: rgb(255, 254, 183);
+	background: linear-gradient(
+		180deg,
+		rgba(255, 254, 183, 1) 0%,
+		rgba(255, 217, 0, 1) 72%
+	);
+}
+
+.ready-button-pressed {
+	background-color: rgb(255, 217, 0, 1);
+	box-shadow: 0 2px 2px rgba(83, 71, 0, 0.2);
+}
+
 .progress-bar {
 	width: 100%;
 	animation: shink 5s linear forwards;

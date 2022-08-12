@@ -5,7 +5,6 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
 	const refreshToken = req.cookies?.jwt;
-	console.log(req.cookies);
 	if (!refreshToken) return res.sendStatus(401);
 
 	const user = await User.findOne({ refreshToken });

@@ -20,6 +20,7 @@ const ChatBox = ({
 	const lastMessageRef = useRef();
 
 	const sendMessage = () => {
+		if (!inputText) return;
 		const message = {
 			sender: user,
 			isBot: null,
@@ -67,7 +68,9 @@ const ChatBox = ({
 					>
 						{!message.isBot && !isSameSender(i) && (
 							<p className={message.isDescriber ? "ml-1" : "mr-1"}>
-								{message.sender === "You" ? "You" : message.sender.username}
+								{message.sender._id === user._id
+									? "You"
+									: message.sender.username}
 							</p>
 						)}
 
@@ -102,7 +105,11 @@ const ChatBox = ({
 			</div>
 			<textarea
 				value={inputText}
-				onChange={e => setInputText(e.target.value)}
+				onChange={e => {
+					!(e.target.value === "\n" && !inputText) &&
+						setInputText(e.target.value);
+				}}
+				onKeyDown={e => e.key === "Enter" && sendMessage()}
 				className="scrollbar w-full h-1/3 my-2 p-2 bg-white overflow-y-auto focus:outline-yellow-300 resize-none"
 			/>
 			<div className="w-full flex justify-around items-center">

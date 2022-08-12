@@ -10,6 +10,8 @@ import Notes from "../components/Notes";
 import { useSocketContext } from "../contexts/SocketContext";
 import { useAuthContext } from "../contexts/AuthContext";
 import { NOTE_TIME, ROUND_NUMBER, TURN_TIME } from "../utils/constants";
+import { useSettingContext } from "../contexts/SettingContext";
+import useAuthAxios from "../hooks/useAuthAxios";
 
 const GameRoom = () => {
 	const {
@@ -24,23 +26,17 @@ const GameRoom = () => {
 
 	const { socket } = useSocketContext();
 	const { user } = useAuthContext();
+	const { settings } = useSettingContext();
+
 	const windowSize = useWindowSize();
+	const authAxios = useAuthAxios();
 
 	const playerArray = Object.values(players).sort(
 		(player1, player2) => player1.order - player2.order
 	);
 
-	const playerNumber = playerArray.length;
-
 	const describer = playerArray.find(p => p.order === describerIndex);
 
-	const getNextDescriber = () => {
-		const nextTurn = (describerIndex + 1) % 4;
-		const nextDescriber = playerArray.find(p => p.order === nextTurn);
-		return nextDescriber.username;
-	};
-
-	const userIndex = players[user._id].order;
 	let { words, notes } = players[describer._id];
 
 	const navigate = useNavigate();
@@ -48,55 +44,138 @@ const GameRoom = () => {
 	const [inputText, setInputText] = useState("");
 	const [messages, setMessages] = useState([]);
 	const [display, setDisplay] = useState("chatbox");
-	const [time, setTime] = useState(null);
+	const [time, setTime] = useState(TURN_TIME);
 
 	const userIsDescriber = () => {
 		return describer._id === user._id;
 	};
 
 	useEffect(() => {
-		console.log({ players });
 		socket.on("time-update", time => {
 			setTime(time);
 		});
+
+		return () => {
+			socket.off("time-update");
+		};
+	}, [socket]);
+
+	useEffect(() => {
 		socket.on("receive-message", message => {
 			setMessages(prev => [...prev, message]);
 		});
+
+		return () => {
+			socket.off("receive-message");
+		};
+	}, [socket]);
+
+	useEffect(() => {
 		socket.on("correct-answer", players => {
 			setPlayers(players);
 			console.log("on correct-answer");
 			endTurn();
 		});
-		socket.on("turn-updated", ({ newRound, newDescriberIndex }) => {
-			setRound(newRound);
+
+		return () => {
+			socket.off("correct-answer");
+		};
+	}, [socket]);
+
+	useEffect(() => {
+		socket.on("turn-updated", newDescriberIndex => {
+			console.log("turn updated to", newDescriberIndex);
 			setDescriberIndex(newDescriberIndex);
+			socket.off("time-update");
 			setTimeout(() => {
+				setTime(TURN_TIME);
+				socket.on("time-update", time => {
+					setTime(time);
+				});
 				if (players[user._id].order === 0) {
 					console.log("emitting turn-time");
 					socket.emit("turn-time", { roomId, time: TURN_TIME });
 				}
 			}, 1000);
 		});
-		socket.on("round-updated", ({ newRound, newDescriberIndex }) => {
-			setRound(newRound);
-			setDescriberIndex(newDescriberIndex);
-			if (newRound < ROUND_NUMBER) {
+
+		return () => {
+			socket.off("turn-updated");
+		};
+	}, [socket]);
+
+	useEffect(() => {
+		socket.on("round-updated", ({ nextRound, nextDesc }) => {
+			console.log("round updated to", nextRound);
+			socket.off("time-update");
+			setTimeout(() => {
+				socket.on("time-update", time => {
+					setTime(time);
+				});
+				setRound(nextRound);
+				setDescriberIndex(nextDesc);
 				navigate("/notes-room");
-				return;
-			}
-			// TODO: Game over
-			console.log("GAME OVER");
+			}, 3000);
 		});
 
 		return () => {
-			console.log("cleaning up");
-			socket.off("time-update");
-			socket.off("receive-message");
-			socket.off("correct-answer");
-			socket.off("turn-updatede");
 			socket.off("round-updated");
 		};
-	}, []);
+	}, [socket]);
+
+	useEffect(() => {
+		socket.on("player-left", (room, user) => {
+			setPlayers(players);
+		});
+
+		return () => {
+			socket.off("player-left");
+		};
+	}, [socket]);
+
+	useEffect(() => {
+		socket.on("game-over", async () => {
+			const userScore = players[user._id].score;
+			const userRank = playerArray.reduce((rank, player) => {
+				if (userScore < player._score) return rank + 1;
+				return rank;
+			}, 1);
+			const userWon = userRank <= playerArray.length / 2;
+
+			const message = {
+				sender: null,
+				isBot: true,
+				isDescriber: null,
+				text: `Game is over. Your rank is ${userRank}.${
+					userWon ? " Well done!" : ""
+				}`,
+			};
+
+			setMessages(prev => [...prev, message]);
+
+			const data = { win: userWon, advanced: settings.level === "hard" };
+
+			authAxios
+				.post("/update-stats", {
+					data,
+				})
+				.then(response => {
+					if (response.status === 200) {
+						console.log("User stats updated");
+					} else {
+						console.log("Something went wrong");
+					}
+				});
+
+			setTimeout(() => {
+				navigate("/wait-room");
+			}, 3000);
+		});
+
+		return () => {
+			socket.off("game-over");
+		};
+	}, [socket]);
 
 	useEffect(() => {
 		const message = {
@@ -105,7 +184,7 @@ const GameRoom = () => {
 			isDescriber: null,
 			text: `It's ${
 				userIsDescriber() ? "your" : `${describer.username}'s`
-			} turn.`,
+			} turn to describe.`,
 		};
 		setMessages(prev => [...prev, message]);
 		if (describerIndex) return;
@@ -125,36 +204,20 @@ const GameRoom = () => {
 				sender: null,
 				isBot: true,
 				isDescriber: null,
-				text: `Time out... The correct word is ${words[round]}.`,
-			},
-			{
-				sender: null,
-				isBot: true,
-				isDescriber: null,
-				text:
-					describerIndex !== playerNumber - 1
-						? `Now it's ${
-								describerIndex + 1 === userIndex
-									? "your"
-									: `${getNextDescriber()}'s`
-						  } turn.`
-						: `The ${round < ROUND_NUMBER - 1 ? "round" : "game"} ends`,
+				text: `Time out... ${
+					userIsDescriber()
+						? "The word seems a bit tricky"
+						: `The correct word is ${words[round]}`
+				}.`,
 			},
 		]);
 
-		setTimeout(
-			() => {
-				endTurn();
-			},
-			describerIndex === playerNumber - 1 ? 3000 : 1000
-		);
+		setTimeout(() => endTurn(), isLastPlayer() ? 3000 : 1000);
 	}, [time]);
 
-	useEffect(() => {
-		socket.on("player-left", players => {
-			setPlayers(players);
-		});
-	}, []);
+	const isLastPlayer = () => {
+		return !playerArray.some(p => p.order > describer.order);
+	};
 
 	const endTurn = () => {
 		console.log("turn ended");

@@ -34,7 +34,7 @@ const NotesRoom = () => {
 		console.log({ round });
 
 		if (players[user._id].order === 0) {
-			//only one player emits
+			//only the first player emits
 			console.log("emitting new round");
 			console.log("sending roomId", roomId);
 			socket.emit("note-time", { roomId, time: NOTE_TIME });
@@ -52,19 +52,7 @@ const NotesRoom = () => {
 
 	useEffect(() => {
 		if (time > 0) return;
-		play();
-	}, [time]);
-
-	useEffect(() => {
-		console.log({ players });
-		if (players[user._id].words) {
-			setWord(players[user._id].words[round]);
-		}
-	}, [players]);
-
-	const play = () => {
 		const writtenNotes = notes.filter(note => note !== "");
-		// updatePlayerNotes(user._id, writtenNotes);
 		socket.emit("save-notes", {
 			userId: user._id,
 			roomId,
@@ -73,10 +61,16 @@ const NotesRoom = () => {
 		console.log({ user });
 		if (players[user._id].order === 0) {
 			console.log("starting a new round");
-			// socket.emit("start-round", { roomId, time: TURN_TIME });
 		}
 		navigate("/game-room");
-	};
+	}, [time]);
+
+	useEffect(() => {
+		console.log({ players });
+		if (players[user._id].words) {
+			setWord(players[user._id].words[round]);
+		}
+	}, [players]);
 
 	return (
 		<BackgroundTemplate>
@@ -150,9 +144,6 @@ const NotesRoom = () => {
 					<div className="w-full">
 						<p className="text-center md:text-lg">
 							Game starts in {formatTime(time)}
-							<span className="bg-yellow-300 rounded px-8" onClick={play}>
-								Start
-							</span>
 						</p>
 					</div>
 				</div>

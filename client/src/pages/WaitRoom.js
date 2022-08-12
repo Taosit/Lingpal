@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BackgroundTemplate from "../components/BackgroundTemplate";
 import { Image } from "cloudinary-react";
-import avatar4 from "../assets/avatar4.jpg";
+import checkmarkIcon from "../assets/checkmark.png";
 import { useGameContext } from "../contexts/GameContext";
 import WhiteboardTemplate from "../components/WhiteboardTemplate";
 import { useSettingContext } from "../contexts/SettingContext";
@@ -15,9 +15,14 @@ const Waitroom = () => {
 	const { socket } = useSocketContext();
 	const { user } = useAuthContext();
 
+	const [isReady, setIsReady] = useState(false);
+	const [order, setOrder] = useState(null);
+
 	useEffect(() => {
 		console.log("emiting join-room");
-		socket.emit("join-room", { settings, user });
+		socket.emit("join-room", { settings, user }, order => {
+			setOrder(order);
+		});
 		socket.on("game-start", ({ players, roomId }) => {
 			setPlayers(players);
 			setRoomId(roomId);
@@ -37,8 +42,15 @@ const Waitroom = () => {
 		setTimeout(() => setInGame(false), 0);
 	};
 
-	const play = () => {
-		// TODO: manual game start
+	const setReady = () => {
+		console.log("set ready", settings);
+		socket.emit("player-ready", { user, settings, isReady: !isReady });
+		setIsReady(prev => !prev);
+	};
+
+	const getPlayerArray = () => {
+		const playerArr = [...Object.values(players), null, null, null, null];
+		return playerArr.slice(0, 4);
 	};
 
 	return (
@@ -57,14 +69,21 @@ const Waitroom = () => {
 						</div>
 					</div>
 					<div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-2">
-						{Object.values(players).map((player, i) => (
+						{getPlayerArray().map((player, i) => (
 							<div key={i} className="player-card">
-								<div className="w-1/3">
+								<div className="w-1/3 relative">
+									{player?.isReady && (
+										<div className="absolute top-0 -right-5 w-6 h-6 opacity-50">
+											<img src={checkmarkIcon} alt="Player is ready" />
+										</div>
+									)}
 									<div className="h-10 w-10 md:h-16 md:w-16 rounded-full overflow-clip mr-1">
 										<Image
-											className="rounded-full object-contain object-center"
+											className={`rounded-full object-contain object-center ${
+												player ? "" : "blur-sm opacity-50"
+											}`}
 											cloudName={process.env.REACT_APP_CLOUDINARY_NAME}
-											publicId={player.avatar}
+											publicId={player?.avatar || "nruwutqaihxyl7sq6ilm"}
 											width="300"
 											crop="scale"
 										/>
@@ -98,12 +117,16 @@ const Waitroom = () => {
 						</ol>
 					</div>
 					<div className="py-2 flex justify-center">
-						<button
-							className="bg-yellow-300 rounded-xl px-8 py-1 text-semibold"
-							onClick={play}
-						>
-							Play
-						</button>
+						{Object.keys(players).length > 1 && (
+							<button
+								className={`${
+									isReady ? "ready-button-pressed" : "ready-button"
+								} rounded-xl px-8 py-1 text-lg text-red-800 font-semibold`}
+								onClick={setReady}
+							>
+								Ready
+							</button>
+						)}
 					</div>
 				</div>
 			</WhiteboardTemplate>
