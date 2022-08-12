@@ -21,6 +21,7 @@ const {
 	checkGameStart,
 	startGame,
 	getNextTurn,
+	calculateGameStats,
 } = require("./controllers/gameLogic");
 
 connectDb();
@@ -121,7 +122,8 @@ mongoose.connection.once("open", () => {
 					nextDesc,
 				});
 			} else {
-				io.to(roomId).emit("game-over");
+				const playersWithStats = calculateGameStats(room.players);
+				io.to(roomId).emit("game-over", playersWithStats);
 			}
 		});
 
@@ -167,7 +169,7 @@ mongoose.connection.once("open", () => {
 			if (!Object.keys(waitroom.players).length) {
 				waitrooms[mode][level][describer] = null;
 			}
-			io.to(waitroom.id).emit("update-players", newPlayers);
+			socket.broadcast.to(waitroomId).emit("update-players", waitroom.players);
 			socket.leave(waitroomId);
 		});
 
