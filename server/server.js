@@ -55,8 +55,6 @@ app.use("/refresh-token", refreshTokenRouter);
 app.use("/user", userRouter);
 
 mongoose.connection.once("open", () => {
-	console.log("db connected");
-
 	io.on("connection", socket => {
 		socket.on("join-room", ({ settings, user }) => {
 			const { mode, level, describer } = settings;
@@ -191,9 +189,7 @@ mongoose.connection.once("open", () => {
 			}
 		});
 
-		socket.on("disconnect", () => {
-			console.log("user disconnected");
-		});
+		socket.on("disconnect", () => {});
 	});
 
 	server.listen("5000", () => {

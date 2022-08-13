@@ -93,7 +93,7 @@ const GameRoom = () => {
 				socket.on("update-time", time => {
 					setTime(time);
 				});
-				if (players[user._id].order === 0) {
+				if (isUserFirstPlayer()) {
 					socket.emit("turn-time", { roomId, time: TURN_TIME });
 				}
 			}, 1000);
@@ -124,14 +124,33 @@ const GameRoom = () => {
 	}, [socket]);
 
 	useEffect(() => {
-		socket.on("player-left", (room, user) => {
-			setPlayers(players);
+		socket.on("player-left", disconnectingPlayer => {
+			console.log("on player-left");
+			const playersCopy = { ...players };
+			delete playersCopy[disconnectingPlayer._id];
+
+			let messageText = `${disconnectingPlayer.username} left the game.`;
+			if (Object.keys(playersCopy).length === 1) {
+				messageText += ` There aren't enough players to continue the game.`;
+				sendBotMessage(messageText);
+				socket.disconnect();
+				setTimeout(() => navigate("/dashboard"), 3000);
+				return;
+			}
+
+			sendBotMessage(messageText);
+			console.log("sent messages");
+			if (disconnectingPlayer.order === describerIndex) {
+				endTurn(true);
+				return;
+			}
+			setPlayers(playersCopy);
 		});
 
 		return () => {
 			socket.off("player-left");
 		};
-	}, [socket]);
+	}, [socket, playerArray.length]);
 
 	useEffect(() => {
 		socket.on("game-over", async players => {
@@ -171,14 +190,14 @@ const GameRoom = () => {
 	}, [socket]);
 
 	useEffect(() => {
-		if (!isLastPlayer()) {
+		if (!isLastPlayerDescribing()) {
 			const messageText = `It's ${
 				userIsDescriber() ? "your" : `${describer.username}'s`
 			} turn to describe.`;
 			sendBotMessage(messageText);
 		}
 		if (!describerIndex) {
-			if (players[user._id].order === 0) {
+			if (isUserFirstPlayer()) {
 				socket.emit("turn-time", { roomId, time: TURN_TIME });
 			}
 		}
@@ -196,11 +215,15 @@ const GameRoom = () => {
 		}.`;
 		sendBotMessage(messageText);
 
-		setTimeout(() => endTurn(), isLastPlayer() ? 3000 : 1000);
+		setTimeout(() => endTurn(), isLastPlayerDescribing() ? 3000 : 1000);
 	}, [time]);
 
-	const isLastPlayer = () => {
-		return !playerArray.some(p => p.order > describer.order);
+	const isUserFirstPlayer = () => {
+		return playerArray.every(p => players[user._id].order <= p.order);
+	};
+
+	const isLastPlayerDescribing = () => {
+		return playerArray.every(p => describer.order >= p.order);
 	};
 
 	const sendBotMessage = text => {
@@ -214,7 +237,7 @@ const GameRoom = () => {
 	};
 
 	const endTurn = () => {
-		if (players[user._id].order === 0) {
+		if (isUserFirstPlayer()) {
 			console.log("emit update-turn");
 			socket.emit("update-turn", roomId);
 		}
@@ -227,7 +250,7 @@ const GameRoom = () => {
 	};
 
 	const leaveGame = () => {
-		socket.emit("quit-game", { user, roomId });
+		socket.disconnect();
 		navigate("/dashboard");
 	};
 

@@ -30,10 +30,14 @@ const NotesRoom = () => {
 		return `${minutes}:${seconds}`;
 	};
 
-	console.log({ players, user });
+	const isUserFirstPlayer = () => {
+		return Object.values(players).every(
+			p => players[user._id].order <= p.order
+		);
+	};
+
 	useEffect(() => {
-		if (players[user._id].order === 0) {
-			//only the first player emits
+		if (isUserFirstPlayer()) {
 			socket.emit("note-time", { roomId, time: NOTE_TIME });
 		}
 
@@ -56,7 +60,7 @@ const NotesRoom = () => {
 			notes: writtenNotes,
 		});
 		console.log({ user });
-		if (players[user._id].order === 0) {
+		if (isUserFirstPlayer()) {
 			console.log("starting a new round");
 		}
 		navigate("/game-room");
