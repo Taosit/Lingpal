@@ -30,24 +30,21 @@ const NotesRoom = () => {
 		return `${minutes}:${seconds}`;
 	};
 
+	console.log({ players, user });
 	useEffect(() => {
-		console.log({ round });
-
 		if (players[user._id].order === 0) {
 			//only the first player emits
-			console.log("emitting new round");
-			console.log("sending roomId", roomId);
 			socket.emit("note-time", { roomId, time: NOTE_TIME });
 		}
 
-		socket.on("time-update", updatedTime => {
+		socket.on("update-time", updatedTime => {
 			setTime(updatedTime);
 		});
 
 		socket.on("update-notes", players => {
 			setPlayers(players);
 		});
-		return () => socket.off("time-update");
+		return () => socket.off("update-time");
 	}, []);
 
 	useEffect(() => {

@@ -8,8 +8,11 @@ import lingpalIcon from "../assets/lingpal.png";
 import notesIcon from "../assets/notes.png";
 import recordingsIcon from "../assets/recordings.png";
 import uploadIcon from "../assets/upload-image.png";
+import { useGameContext } from "../contexts/GameContext";
 
 const Dashboard = () => {
+	const { setPlayers, setInGame, setRoomId, setRound, setDescriberIndex } =
+		useGameContext();
 	const { user, setUser } = useAuthContext();
 	const authAxios = useAuthAxios();
 
@@ -59,7 +62,16 @@ const Dashboard = () => {
 	};
 
 	const play = () => {
+		initializeSettings();
 		navigate("/game-settings");
+	};
+
+	const initializeSettings = () => {
+		setRound(0);
+		setDescriberIndex(0);
+		setPlayers({});
+		setInGame(false);
+		setRoomId(null);
 	};
 
 	const logout = () => {

@@ -22,6 +22,7 @@ const {
 	startGame,
 	getNextTurn,
 	calculateGameStats,
+	flattenWaitroom,
 } = require("./controllers/gameLogic");
 
 connectDb();
@@ -61,15 +62,15 @@ mongoose.connection.once("open", () => {
 			const { mode, level, describer } = settings;
 			let waitroom = waitrooms[mode][level][describer];
 			if (!waitroom) {
-				waitroom = { id: uuid(), players: {} };
+				waitroom = { id: uuid(), players: {}, settings };
 				waitrooms[mode][level][describer] = waitroom;
 			}
 			const userCopy = {
 				...user,
 				order: Object.keys(waitroom.players).length,
 				isReady: false,
+				socketId: socket.id,
 			};
-			console.log({ players: Object.keys(waitroom.players).length });
 			delete userCopy.refreshToken;
 			waitroom.players[user._id] = userCopy;
 			socket.join(waitroom.id);
@@ -158,26 +159,36 @@ mongoose.connection.once("open", () => {
 			}
 		});
 
-		socket.on("leave-room", ({ settings, user }) => {
-			const { mode, level, describer } = settings;
-			let waitroom = waitrooms[mode][level][describer];
-			console.log(user.username, "left room");
-			if (!waitroom) return;
-			const waitroomId = waitroom.id;
-			delete waitroom.players[user._id];
-			console.log({ players: Object.keys(waitroom.players).length });
-			if (!Object.keys(waitroom.players).length) {
-				waitrooms[mode][level][describer] = null;
+		socket.on("disconnecting", () => {
+			console.log("disconnecting");
+			const sockeRooms = [...socket.rooms];
+			const roomId = sockeRooms.find(roomId => roomId !== socket.id);
+			if (!roomId) return;
+			if (rooms[roomId]) {
+				const disconnectingUser = Object.values(rooms[roomId].players).find(
+					p => p.socketId === socket.id
+				);
+				delete rooms[roomId].players[disconnectingUser._id];
+				if (Object.keys(rooms[roomId].players).length > 0) {
+					socket.broadcast.to(roomId).emit("player-left", disconnectingUser);
+				} else {
+					delete rooms[roomId];
+				}
+			} else {
+				const waitroomArray = flattenWaitroom(waitrooms);
+				const waitroom = waitroomArray.find(waitroom => waitroom.id === roomId);
+				const disconnectingUser = Object.values(waitroom.players).find(
+					p => p.socketId === socket.id
+				);
+				delete waitroom.players[disconnectingUser._id];
+				const { mode, level, describer } = waitroom.settings;
+				if (Object.keys(waitroom.players).length > 0) {
+					waitrooms[mode][level][describer].players = waitroom.players;
+					socket.broadcast.to(roomId).emit("update-players", waitroom.players);
+				} else {
+					waitrooms[mode][level][describer] = null;
+				}
 			}
-			socket.broadcast.to(waitroomId).emit("update-players", waitroom.players);
-			socket.leave(waitroomId);
-		});
-
-		socket.on("quit-game", ({ user, roomId }) => {
-			console.log(user.username, "quits game in", { room: rooms[roomId] });
-			delete rooms[roomId].players[user._id];
-			io.to(roomId).emit("player-left", rooms[roomId], user);
-			socket.leave(roomId);
 		});
 
 		socket.on("disconnect", () => {

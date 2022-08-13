@@ -22,6 +22,8 @@ const GameRoom = () => {
 		describerIndex,
 		setDescriberIndex,
 		roomId,
+		setRoomId,
+		setInGame,
 	} = useGameContext();
 
 	const { socket } = useSocketContext();
@@ -51,12 +53,12 @@ const GameRoom = () => {
 	};
 
 	useEffect(() => {
-		socket.on("time-update", time => {
+		socket.on("update-time", time => {
 			setTime(time);
 		});
 
 		return () => {
-			socket.off("time-update");
+			socket.off("update-time");
 		};
 	}, [socket]);
 
@@ -73,7 +75,6 @@ const GameRoom = () => {
 	useEffect(() => {
 		socket.on("correct-answer", players => {
 			setPlayers(players);
-			console.log("on correct-answer");
 			endTurn();
 		});
 
@@ -86,14 +87,13 @@ const GameRoom = () => {
 		socket.on("turn-updated", newDescriberIndex => {
 			console.log("turn updated to", newDescriberIndex);
 			setDescriberIndex(newDescriberIndex);
-			socket.off("time-update");
+			socket.off("update-time");
 			setTimeout(() => {
 				setTime(TURN_TIME);
-				socket.on("time-update", time => {
+				socket.on("update-time", time => {
 					setTime(time);
 				});
 				if (players[user._id].order === 0) {
-					console.log("emitting turn-time");
 					socket.emit("turn-time", { roomId, time: TURN_TIME });
 				}
 			}, 1000);
@@ -107,9 +107,9 @@ const GameRoom = () => {
 	useEffect(() => {
 		socket.on("round-updated", ({ nextRound, nextDesc }) => {
 			console.log("round updated to", nextRound);
-			socket.off("time-update");
+			socket.off("update-time");
 			setTimeout(() => {
-				socket.on("time-update", time => {
+				socket.on("update-time", time => {
 					setTime(time);
 				});
 				setRound(nextRound);
@@ -137,14 +137,10 @@ const GameRoom = () => {
 		socket.on("game-over", async players => {
 			const { win, rank } = players[user._id];
 
-			const message = {
-				sender: null,
-				isBot: true,
-				isDescriber: null,
-				text: `Game is over. Your rank is ${rank}.${win ? " Well done!" : ""}`,
-			};
-
-			setMessages(prev => [...prev, message]);
+			const messageText = `Game is over. Your rank is ${rank}.${
+				win ? " Well done!" : ""
+			}`;
+			sendBotMessage(messageText);
 
 			const advanced = settings.level === "hard";
 			const data = { win, advanced };
@@ -155,7 +151,6 @@ const GameRoom = () => {
 				})
 				.then(response => {
 					if (response.status === 200) {
-						console.log("User stats updated");
 						const userCopy = { ...user };
 						userCopy.total++;
 						win && userCopy.win++;
@@ -177,19 +172,13 @@ const GameRoom = () => {
 
 	useEffect(() => {
 		if (!isLastPlayer()) {
-			const message = {
-				sender: null,
-				isBot: true,
-				isDescriber: null,
-				text: `It's ${
-					userIsDescriber() ? "your" : `${describer.username}'s`
-				} turn to describe.`,
-			};
-			setMessages(prev => [...prev, message]);
+			const messageText = `It's ${
+				userIsDescriber() ? "your" : `${describer.username}'s`
+			} turn to describe.`;
+			sendBotMessage(messageText);
 		}
 		if (!describerIndex) {
 			if (players[user._id].order === 0) {
-				console.log("emitting turn-time");
 				socket.emit("turn-time", { roomId, time: TURN_TIME });
 			}
 		}
@@ -199,19 +188,13 @@ const GameRoom = () => {
 		console.log("use effect", { time });
 		if (time === null || time > 0) return;
 		setDisplay("chatbox");
-		setMessages(prev => [
-			...prev,
-			{
-				sender: null,
-				isBot: true,
-				isDescriber: null,
-				text: `Time out... ${
-					userIsDescriber()
-						? "The word seems a bit tricky"
-						: `The correct word is ${words[round]}`
-				}.`,
-			},
-		]);
+
+		const messageText = `Time out... ${
+			userIsDescriber()
+				? "The word seems a bit tricky"
+				: `The correct word is ${words[round]}`
+		}.`;
+		sendBotMessage(messageText);
 
 		setTimeout(() => endTurn(), isLastPlayer() ? 3000 : 1000);
 	}, [time]);
@@ -220,9 +203,19 @@ const GameRoom = () => {
 		return !playerArray.some(p => p.order > describer.order);
 	};
 
+	const sendBotMessage = text => {
+		const message = {
+			sender: null,
+			isBot: true,
+			isDescriber: null,
+			text,
+		};
+		setMessages(prev => [...prev, message]);
+	};
+
 	const endTurn = () => {
-		console.log("turn ended");
 		if (players[user._id].order === 0) {
+			console.log("emit update-turn");
 			socket.emit("update-turn", roomId);
 		}
 	};
@@ -247,7 +240,7 @@ const GameRoom = () => {
 							<div
 								key={i}
 								className={`flex flex-col lg:flex-row items-center rounded z-10 ${
-									i === describerIndex
+									player._id === describer._id
 										? "outline outline-yellow-500 outline-offset-4 md:outline-offset-8"
 										: ""
 								}`}

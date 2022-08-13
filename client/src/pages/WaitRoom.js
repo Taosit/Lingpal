@@ -15,18 +15,12 @@ const Waitroom = () => {
 	const { socket } = useSocketContext();
 	const { user } = useAuthContext();
 
-	const [isReady, setIsReady] = useState(false);
-	const [order, setOrder] = useState(null);
-
 	useEffect(() => {
 		console.log("emiting join-room");
-		socket.emit("join-room", { settings, user }, order => {
-			setOrder(order);
-		});
+		socket.emit("join-room", { settings, user });
 		socket.on("game-start", ({ players, roomId }) => {
 			setPlayers(players);
 			setRoomId(roomId);
-			console.log("setting room id");
 			navigate("/notes-room");
 		});
 
@@ -36,16 +30,14 @@ const Waitroom = () => {
 	const navigate = useNavigate();
 
 	const leaveRoom = () => {
-		navigate("/dashboard");
 		console.log("leave room");
-		socket.emit("leave-room", { settings, user });
-		setTimeout(() => setInGame(false), 0);
+		setInGame(false);
+		navigate("/dashboard");
 	};
 
 	const setReady = () => {
-		console.log("set ready", settings);
-		socket.emit("player-ready", { user, settings, isReady: !isReady });
-		setIsReady(prev => !prev);
+		const newReadyState = !players[user._id].isReady;
+		socket.emit("player-ready", { user, settings, isReady: newReadyState });
 	};
 
 	const getPlayerArray = () => {
@@ -123,7 +115,9 @@ const Waitroom = () => {
 						{Object.keys(players).length > 1 && (
 							<button
 								className={`${
-									isReady ? "ready-button-pressed" : "ready-button"
+									players[user._id].isReady
+										? "ready-button-pressed"
+										: "ready-button"
 								} rounded-xl px-8 py-1 text-lg text-red-800 font-semibold`}
 								onClick={setReady}
 							>
