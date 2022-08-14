@@ -106,7 +106,7 @@ mongoose.connection.once("open", () => {
 			rooms[roomId].timer = setTimer(io, roomId, time);
 		});
 
-		socket.on("update-turn", roomId => {
+		socket.on("update-turn", ({ roomId, players }) => {
 			const room = rooms[roomId];
 			const { nextDesc, nextRound } = getNextTurn(room);
 
@@ -123,6 +123,13 @@ mongoose.connection.once("open", () => {
 			} else {
 				const playersWithStats = calculateGameStats(room.players);
 				io.to(roomId).emit("game-over", playersWithStats);
+			}
+			if (players) {
+				console.log({ timer: rooms[roomId].timer });
+				rooms[roomId].timer = setTimer(io, roomId, 20);
+				console.log({ timer: rooms[roomId].timer });
+				rooms[roomId].players = players;
+				io.to(roomId).emit("update-players", players);
 			}
 		});
 
@@ -166,6 +173,11 @@ mongoose.connection.once("open", () => {
 				const disconnectingUser = Object.values(rooms[roomId].players).find(
 					p => p.socketId === socket.id
 				);
+				// if (disconnectingUser.order === rooms[roomId].describerIndex) {
+				// 	console.log("interval", rooms[roomId].timer);
+				// 	clearInterval(rooms[roomId].timer);
+				// 	console.log("interval", rooms[roomId].timer);
+				// }
 				delete rooms[roomId].players[disconnectingUser._id];
 				if (Object.keys(rooms[roomId].players).length > 0) {
 					socket.broadcast.to(roomId).emit("player-left", disconnectingUser);

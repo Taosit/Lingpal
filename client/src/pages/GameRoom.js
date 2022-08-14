@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Image } from "cloudinary-react";
 import { useNavigate } from "react-router-dom";
 import BackgroundTemplate from "../components/BackgroundTemplate";
@@ -38,7 +38,6 @@ const GameRoom = () => {
 	);
 
 	const describer = playerArray.find(p => p.order === describerIndex);
-
 	let { words, notes } = players[describer._id];
 
 	const navigate = useNavigate();
@@ -47,9 +46,46 @@ const GameRoom = () => {
 	const [messages, setMessages] = useState([]);
 	const [display, setDisplay] = useState("chatbox");
 	const [time, setTime] = useState(TURN_TIME);
+	const [oldRound, setOldRound] = useState(false);
 
 	const userIsDescriber = () => {
-		return describer._id === user._id;
+		return describer._id === user._id && !oldRound;
+	};
+
+	const isUserFirstPlayer = () => {
+		return playerArray.every(p => players[user._id].order <= p.order);
+	};
+
+	const isLastPlayerDescribing = () => {
+		return playerArray.every(p => describer.order >= p.order);
+	};
+
+	const isFirstPlayerDescribing = () => {
+		return playerArray.every(p => describer.order <= p.order);
+	};
+
+	const formatTime = time => {
+		const minutes = Math.floor(time / 60);
+		const seconds = time % 60;
+		return `${minutes}:${seconds}`;
+	};
+
+	const sendBotMessage = text => {
+		const message = {
+			sender: null,
+			isBot: true,
+			isDescriber: null,
+			text,
+		};
+		setMessages(prev => [...prev, message]);
+	};
+
+	const endTurn = () => {
+		console.log(players[user._id].order, "should emit update-turn");
+		if (isUserFirstPlayer()) {
+			console.log("emit update-turn");
+			socket.emit("update-turn", { roomId });
+		}
 	};
 
 	useEffect(() => {
@@ -73,15 +109,18 @@ const GameRoom = () => {
 	}, [socket]);
 
 	useEffect(() => {
+		console.log({ playerArray });
 		socket.on("correct-answer", players => {
+			console.log({ players, playerArray });
 			setPlayers(players);
 			endTurn();
 		});
 
 		return () => {
+			console.log({ playerArray });
 			socket.off("correct-answer");
 		};
-	}, [socket]);
+	}, [socket, playerArray.length]);
 
 	useEffect(() => {
 		socket.on("turn-updated", newDescriberIndex => {
@@ -93,7 +132,9 @@ const GameRoom = () => {
 				socket.on("update-time", time => {
 					setTime(time);
 				});
+				console.log("should emit turn-time");
 				if (isUserFirstPlayer()) {
+					console.log("emitted turn-time");
 					socket.emit("turn-time", { roomId, time: TURN_TIME });
 				}
 			}, 1000);
@@ -102,18 +143,20 @@ const GameRoom = () => {
 		return () => {
 			socket.off("turn-updated");
 		};
-	}, [socket]);
+	}, [socket, playerArray.length]);
 
 	useEffect(() => {
 		socket.on("round-updated", ({ nextRound, nextDesc }) => {
 			console.log("round updated to", nextRound);
 			socket.off("update-time");
+			setRound(nextRound);
+			setDescriberIndex(nextDesc);
+			setOldRound(true);
 			setTimeout(() => {
 				socket.on("update-time", time => {
 					setTime(time);
 				});
-				setRound(nextRound);
-				setDescriberIndex(nextDesc);
+				setOldRound(false);
 				navigate("/notes-room");
 			}, 3000);
 		});
@@ -121,11 +164,13 @@ const GameRoom = () => {
 		return () => {
 			socket.off("round-updated");
 		};
-	}, [socket]);
+	}, [socket, playerArray.length]);
 
 	useEffect(() => {
+		console.log("player length", playerArray.length);
 		socket.on("player-left", disconnectingPlayer => {
 			console.log("on player-left");
+			console.log({ players, disconnectingPlayer });
 			const playersCopy = { ...players };
 			delete playersCopy[disconnectingPlayer._id];
 
@@ -141,7 +186,15 @@ const GameRoom = () => {
 			sendBotMessage(messageText);
 			console.log("sent messages");
 			if (disconnectingPlayer.order === describerIndex) {
-				endTurn(true);
+				console.log("disconnection player is the describer");
+				const currentPlayers = Object.values(playersCopy);
+				const isFirstAvailablePlayer = currentPlayers.every(
+					p => players[user._id].order <= p.order
+				);
+				if (isFirstAvailablePlayer) {
+					console.log("emit update-turn");
+					socket.emit("update-turn", { roomId, players: playersCopy });
+				}
 				return;
 			}
 			setPlayers(playersCopy);
@@ -150,7 +203,7 @@ const GameRoom = () => {
 		return () => {
 			socket.off("player-left");
 		};
-	}, [socket, playerArray.length]);
+	}, [socket, describerIndex, Object.values(players).length]);
 
 	useEffect(() => {
 		socket.on("game-over", async players => {
@@ -190,21 +243,23 @@ const GameRoom = () => {
 	}, [socket]);
 
 	useEffect(() => {
-		if (!isLastPlayerDescribing()) {
+		if (!isLastPlayerDescribing() && !oldRound) {
 			const messageText = `It's ${
 				userIsDescriber() ? "your" : `${describer.username}'s`
 			} turn to describe.`;
 			sendBotMessage(messageText);
 		}
-		if (!describerIndex) {
+		if (isFirstPlayerDescribing()) {
+			console.log("should emit turn-time");
 			if (isUserFirstPlayer()) {
+				console.log("emitted turn-time");
 				socket.emit("turn-time", { roomId, time: TURN_TIME });
 			}
 		}
 	}, [describerIndex]);
 
 	useEffect(() => {
-		console.log("use effect", { time });
+		console.log({ time });
 		if (time === null || time > 0) return;
 		setDisplay("chatbox");
 
@@ -217,37 +272,6 @@ const GameRoom = () => {
 
 		setTimeout(() => endTurn(), isLastPlayerDescribing() ? 3000 : 1000);
 	}, [time]);
-
-	const isUserFirstPlayer = () => {
-		return playerArray.every(p => players[user._id].order <= p.order);
-	};
-
-	const isLastPlayerDescribing = () => {
-		return playerArray.every(p => describer.order >= p.order);
-	};
-
-	const sendBotMessage = text => {
-		const message = {
-			sender: null,
-			isBot: true,
-			isDescriber: null,
-			text,
-		};
-		setMessages(prev => [...prev, message]);
-	};
-
-	const endTurn = () => {
-		if (isUserFirstPlayer()) {
-			console.log("emit update-turn");
-			socket.emit("update-turn", roomId);
-		}
-	};
-
-	const formatTime = time => {
-		const minutes = Math.floor(time / 60);
-		const seconds = time % 60;
-		return `${minutes}:${seconds}`;
-	};
 
 	const leaveGame = () => {
 		socket.disconnect();
@@ -318,7 +342,7 @@ const GameRoom = () => {
 							setInputText={setInputText}
 							messages={messages}
 							word={words[round]}
-							describerId={describer._id}
+							userIsDescriber={userIsDescriber}
 							setDisplay={setDisplay}
 						/>
 						<Notes
@@ -334,7 +358,7 @@ const GameRoom = () => {
 						setInputText={setInputText}
 						messages={messages}
 						word={words[round]}
-						describerId={describer._id}
+						userIsDescriber={userIsDescriber}
 						setDisplay={setDisplay}
 					/>
 				) : (

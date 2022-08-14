@@ -23,6 +23,7 @@ const checkGameStart = players => {
 };
 
 const setTimer = (io, room, allowdTime) => {
+	clearInterval(rooms[room].timer);
 	const endTime = getEndTime(allowdTime);
 	const interval = setInterval(() => {
 		const updatedTime = Math.round((endTime - new Date().getTime()) / 1000);
