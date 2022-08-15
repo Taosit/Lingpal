@@ -8,7 +8,8 @@ import { useSocketContext } from "../contexts/SocketContext";
 import { NOTE_TIME, TURN_TIME } from "../utils/constants";
 
 const NotesRoom = () => {
-	const { players, setPlayers, round, roomId } = useGameContext();
+	const { players, setPlayers, round, roomId, setPlayerLeftNoteRoom } =
+		useGameContext();
 
 	const { socket } = useSocketContext();
 	const { user } = useAuthContext();
@@ -30,25 +31,39 @@ const NotesRoom = () => {
 		return `${minutes}:${seconds}`;
 	};
 
-	useEffect(() => {
-		console.log({ round });
+	const isUserFirstPlayer = () => {
+		return Object.values(players).every(
+			p => players[user._id].order <= p.order
+		);
+	};
 
-		if (players[user._id].order === 0) {
-			//only the first player emits
-			console.log("emitting new round");
-			console.log("sending roomId", roomId);
+	const leaveGame = () => {
+		socket.disconnect();
+		navigate("/dashboard");
+	};
+
+	useEffect(() => {
+		if (isUserFirstPlayer()) {
 			socket.emit("note-time", { roomId, time: NOTE_TIME });
 		}
 
-		socket.on("time-update", updatedTime => {
+		socket.on("update-time", updatedTime => {
 			setTime(updatedTime);
 		});
 
 		socket.on("update-notes", players => {
 			setPlayers(players);
 		});
-		return () => socket.off("time-update");
-	}, []);
+		return () => socket.off("update-time");
+	}, [socket]);
+
+	useEffect(() => {
+		socket.on("player-left", disconnectingPlayer => {
+			setPlayerLeftNoteRoom(prev => [...prev, disconnectingPlayer]);
+		});
+
+		return () => socket.off("player-left");
+	}, [socket]);
 
 	useEffect(() => {
 		if (time > 0) return;
@@ -58,15 +73,10 @@ const NotesRoom = () => {
 			roomId,
 			notes: writtenNotes,
 		});
-		console.log({ user });
-		if (players[user._id].order === 0) {
-			console.log("starting a new round");
-		}
 		navigate("/game-room");
 	}, [time]);
 
 	useEffect(() => {
-		console.log({ players });
 		if (players[user._id].words) {
 			setWord(players[user._id].words[round]);
 		}
@@ -75,7 +85,13 @@ const NotesRoom = () => {
 	return (
 		<BackgroundTemplate>
 			<WhiteboardTemplate>
-				<div className="grid h-full w-full gap-6 grid-rows-layout2">
+				<div className="grid h-full w-full gap-6 grid-rows-layout2 relative">
+					<button
+						onClick={() => leaveGame()}
+						className="absolute top-0 left-0 py-1 px-2 rounded-lg bg-red-600 text-white font-semibold text-sm sm:text-base z-10"
+					>
+						Quit
+					</button>
 					<div>
 						<h2 className="uppercase text-center text-white md:text-lg">
 							Your Word

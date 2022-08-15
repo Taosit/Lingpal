@@ -10,7 +10,6 @@ export const useSocket = serverPath => {
 			autoConnect: true,
 			forceNew: true,
 		});
-		console.log("in connect socket");
 		setSocket(socketTemp);
 	}, [serverPath]);
 

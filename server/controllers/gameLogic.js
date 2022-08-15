@@ -7,6 +7,13 @@ const getEndTime = timeValue => {
 	return time.getTime();
 };
 
+const flattenWaitroom = waitrooms => {
+	return Object.values(waitrooms)
+		.map(sub1 => Object.values(sub1).map(sub2 => Object.values(sub2)))
+		.flat(3)
+		.filter(room => room);
+};
+
 const checkGameStart = players => {
 	const playerArr = Object.values(players);
 	if (playerArr.length === 4) {
@@ -16,10 +23,11 @@ const checkGameStart = players => {
 };
 
 const setTimer = (io, room, allowdTime) => {
+	clearInterval(rooms[room].timer);
 	const endTime = getEndTime(allowdTime);
 	const interval = setInterval(() => {
 		const updatedTime = Math.round((endTime - new Date().getTime()) / 1000);
-		io.to(room).emit("time-update", updatedTime);
+		io.to(room).emit("update-time", updatedTime);
 		if (updatedTime <= 0) {
 			clearInterval(interval);
 		}
@@ -113,6 +121,7 @@ const calculateGameStats = players => {
 
 module.exports = {
 	setTimer,
+	flattenWaitroom,
 	checkGameStart,
 	startGame,
 	initializePlayers,

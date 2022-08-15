@@ -13,6 +13,7 @@ const GameContextProvider = ({ children }) => {
 	const [roomId, setRoomId] = useState(null);
 	const [round, setRound] = useState(0);
 	const [describerIndex, setDescriberIndex] = useState(0);
+	const [playerLeftNoteRoom, setPlayerLeftNoteRoom] = useState([]);
 
 	return (
 		<GameContext.Provider
@@ -27,6 +28,8 @@ const GameContextProvider = ({ children }) => {
 				setRoomId,
 				inGame,
 				setInGame,
+				playerLeftNoteRoom,
+				setPlayerLeftNoteRoom,
 			}}
 		>
 			{children}

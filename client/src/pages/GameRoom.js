@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Image } from "cloudinary-react";
 import { useNavigate } from "react-router-dom";
 import BackgroundTemplate from "../components/BackgroundTemplate";
@@ -9,7 +9,7 @@ import ChatBox from "../components/ChatBox";
 import Notes from "../components/Notes";
 import { useSocketContext } from "../contexts/SocketContext";
 import { useAuthContext } from "../contexts/AuthContext";
-import { NOTE_TIME, ROUND_NUMBER, TURN_TIME } from "../utils/constants";
+import { TURN_TIME } from "../utils/constants";
 import { useSettingContext } from "../contexts/SettingContext";
 import useAuthAxios from "../hooks/useAuthAxios";
 
@@ -22,6 +22,8 @@ const GameRoom = () => {
 		describerIndex,
 		setDescriberIndex,
 		roomId,
+		playerLeftNoteRoom,
+		setPlayerLeftNoteRoom,
 	} = useGameContext();
 
 	const { socket } = useSocketContext();
@@ -35,8 +37,22 @@ const GameRoom = () => {
 		(player1, player2) => player1.order - player2.order
 	);
 
-	const describer = playerArray.find(p => p.order === describerIndex);
+	useEffect(() => {
+		if (playerLeftNoteRoom.length > 0) {
+			playerLeftNoteRoom.forEach(player => {
+				socket.emit("someone-left", { player, roomId });
+				if (player.order === describerIndex) {
+					const nextPlayer = playerArray.find(
+						p => !playerLeftNoteRoom.some(pl => pl._id === p._id)
+					);
+					setDescriberIndex(nextPlayer.order);
+				}
+			});
+		}
+		setPlayerLeftNoteRoom([]);
+	}, []);
 
+	const describer = playerArray.find(p => p.order === describerIndex);
 	let { words, notes } = players[describer._id];
 
 	const navigate = useNavigate();
@@ -45,18 +61,55 @@ const GameRoom = () => {
 	const [messages, setMessages] = useState([]);
 	const [display, setDisplay] = useState("chatbox");
 	const [time, setTime] = useState(TURN_TIME);
+	const [oldRound, setOldRound] = useState(false);
 
 	const userIsDescriber = () => {
-		return describer._id === user._id;
+		return describer._id === user._id && !oldRound;
+	};
+
+	const isUserFirstPlayer = () => {
+		return playerArray.every(p => players[user._id].order <= p.order);
+	};
+
+	const isLastPlayerDescribing = () => {
+		return playerArray.every(p => describer.order >= p.order);
+	};
+
+	const isFirstPlayerDescribing = () => {
+		return playerArray.every(p => describer.order <= p.order);
+	};
+
+	const formatTime = time => {
+		const minutes = Math.floor(time / 60);
+		const seconds = time % 60;
+		return `${minutes}:${seconds}`;
+	};
+
+	const sendBotMessage = text => {
+		const message = {
+			sender: null,
+			isBot: true,
+			isDescriber: null,
+			text,
+		};
+		setMessages(prev => [...prev, message]);
+	};
+
+	const endTurn = () => {
+		console.log(players[user._id].order, "should emit update-turn");
+		if (isUserFirstPlayer()) {
+			console.log("emit update-turn");
+			socket.emit("update-turn", { roomId });
+		}
 	};
 
 	useEffect(() => {
-		socket.on("time-update", time => {
+		socket.on("update-time", time => {
 			setTime(time);
 		});
 
 		return () => {
-			socket.off("time-update");
+			socket.off("update-time");
 		};
 	}, [socket]);
 
@@ -71,29 +124,31 @@ const GameRoom = () => {
 	}, [socket]);
 
 	useEffect(() => {
+		console.log({ playerArray });
 		socket.on("correct-answer", players => {
 			setPlayers(players);
-			console.log("on correct-answer");
 			endTurn();
 		});
 
 		return () => {
+			console.log({ playerArray });
 			socket.off("correct-answer");
 		};
-	}, [socket]);
+	}, [socket, playerArray.length]);
 
 	useEffect(() => {
 		socket.on("turn-updated", newDescriberIndex => {
 			console.log("turn updated to", newDescriberIndex);
 			setDescriberIndex(newDescriberIndex);
-			socket.off("time-update");
+			socket.off("update-time");
 			setTimeout(() => {
 				setTime(TURN_TIME);
-				socket.on("time-update", time => {
+				socket.on("update-time", time => {
 					setTime(time);
 				});
-				if (players[user._id].order === 0) {
-					console.log("emitting turn-time");
+				console.log("should emit turn-time");
+				if (isUserFirstPlayer()) {
+					console.log("emitted turn-time");
 					socket.emit("turn-time", { roomId, time: TURN_TIME });
 				}
 			}, 1000);
@@ -102,18 +157,20 @@ const GameRoom = () => {
 		return () => {
 			socket.off("turn-updated");
 		};
-	}, [socket]);
+	}, [socket, playerArray.length]);
 
 	useEffect(() => {
 		socket.on("round-updated", ({ nextRound, nextDesc }) => {
 			console.log("round updated to", nextRound);
-			socket.off("time-update");
+			socket.off("update-time");
+			setRound(nextRound);
+			setDescriberIndex(nextDesc);
+			setOldRound(true);
 			setTimeout(() => {
-				socket.on("time-update", time => {
+				socket.on("update-time", time => {
 					setTime(time);
 				});
-				setRound(nextRound);
-				setDescriberIndex(nextDesc);
+				setOldRound(false);
 				navigate("/notes-room");
 			}, 3000);
 		});
@@ -121,30 +178,54 @@ const GameRoom = () => {
 		return () => {
 			socket.off("round-updated");
 		};
-	}, [socket]);
+	}, [socket, playerArray.length]);
 
 	useEffect(() => {
-		socket.on("player-left", (room, user) => {
-			setPlayers(players);
+		socket.on("player-left", disconnectingPlayer => {
+			console.log("on player-left");
+			console.log({ players, disconnectingPlayer });
+			const playersCopy = { ...players };
+			delete playersCopy[disconnectingPlayer._id];
+
+			let messageText = `${disconnectingPlayer.username} left the game.`;
+			if (Object.keys(playersCopy).length === 1) {
+				messageText += ` There aren't enough players to continue the game.`;
+				sendBotMessage(messageText);
+				socket.disconnect();
+				setTimeout(() => navigate("/dashboard"), 3000);
+				return;
+			}
+
+			sendBotMessage(messageText);
+			console.log("sent messages");
+			if (disconnectingPlayer.order === describerIndex) {
+				console.log("disconnection player is the describer");
+				const currentPlayers = Object.values(playersCopy);
+				const isFirstAvailablePlayer = currentPlayers.every(
+					p => players[user._id].order <= p.order
+				);
+				if (isFirstAvailablePlayer) {
+					console.log("emit update-turn");
+					socket.emit("update-turn", { roomId, players: playersCopy });
+				}
+				return;
+			}
+			setPlayers(playersCopy);
 		});
 
 		return () => {
 			socket.off("player-left");
 		};
-	}, [socket]);
+	}, [socket, describerIndex, Object.values(players).length]);
 
 	useEffect(() => {
 		socket.on("game-over", async players => {
 			const { win, rank } = players[user._id];
 
-			const message = {
-				sender: null,
-				isBot: true,
-				isDescriber: null,
-				text: `Game is over. Your rank is ${rank}.${win ? " Well done!" : ""}`,
-			};
-
-			setMessages(prev => [...prev, message]);
+			const messageText = `Game is over. Your rank is ${rank}.${
+				win ? " Well done!" : ""
+			}`;
+			sendBotMessage(messageText);
 
 			const advanced = settings.level === "hard";
 			const data = { win, advanced };
@@ -155,7 +236,6 @@ const GameRoom = () => {
 				})
 				.then(response => {
 					if (response.status === 200) {
-						console.log("User stats updated");
 						const userCopy = { ...user };
 						userCopy.total++;
 						win && userCopy.win++;
@@ -176,65 +256,38 @@ const GameRoom = () => {
 	}, [socket]);
 
 	useEffect(() => {
-		if (!isLastPlayer()) {
-			const message = {
-				sender: null,
-				isBot: true,
-				isDescriber: null,
-				text: `It's ${
-					userIsDescriber() ? "your" : `${describer.username}'s`
-				} turn to describe.`,
-			};
-			setMessages(prev => [...prev, message]);
+		if (!isLastPlayerDescribing() && !oldRound) {
+			const messageText = `It's ${
+				userIsDescriber() ? "your" : `${describer.username}'s`
+			} turn to describe.`;
+			sendBotMessage(messageText);
 		}
-		if (!describerIndex) {
-			if (players[user._id].order === 0) {
-				console.log("emitting turn-time");
+		if (isFirstPlayerDescribing()) {
+			console.log("should emit turn-time");
+			if (isUserFirstPlayer()) {
+				console.log("emitted turn-time");
 				socket.emit("turn-time", { roomId, time: TURN_TIME });
 			}
 		}
 	}, [describerIndex]);
 
 	useEffect(() => {
-		console.log("use effect", { time });
+		console.log({ time });
 		if (time === null || time > 0) return;
 		setDisplay("chatbox");
-		setMessages(prev => [
-			...prev,
-			{
-				sender: null,
-				isBot: true,
-				isDescriber: null,
-				text: `Time out... ${
-					userIsDescriber()
-						? "The word seems a bit tricky"
-						: `The correct word is ${words[round]}`
-				}.`,
-			},
-		]);
 
-		setTimeout(() => endTurn(), isLastPlayer() ? 3000 : 1000);
+		const messageText = `Time out... ${
+			userIsDescriber()
+				? "The word seems a bit tricky"
+				: `The correct word is ${words[round]}`
+		}.`;
+		sendBotMessage(messageText);
+
+		setTimeout(() => endTurn(), isLastPlayerDescribing() ? 3000 : 1000);
 	}, [time]);
 
-	const isLastPlayer = () => {
-		return !playerArray.some(p => p.order > describer.order);
-	};
-
-	const endTurn = () => {
-		console.log("turn ended");
-		if (players[user._id].order === 0) {
-			socket.emit("update-turn", roomId);
-		}
-	};
-
-	const formatTime = time => {
-		const minutes = Math.floor(time / 60);
-		const seconds = time % 60;
-		return `${minutes}:${seconds}`;
-	};
-
 	const leaveGame = () => {
-		socket.emit("quit-game", { user, roomId });
+		socket.disconnect();
 		navigate("/dashboard");
 	};
 
@@ -247,7 +300,7 @@ const GameRoom = () => {
 							<div
 								key={i}
 								className={`flex flex-col lg:flex-row items-center rounded z-10 ${
-									i === describerIndex
+									player._id === describer._id
 										? "outline outline-yellow-500 outline-offset-4 md:outline-offset-8"
 										: ""
 								}`}
@@ -302,7 +355,7 @@ const GameRoom = () => {
 							setInputText={setInputText}
 							messages={messages}
 							word={words[round]}
-							describerId={describer._id}
+							userIsDescriber={userIsDescriber}
 							setDisplay={setDisplay}
 						/>
 						<Notes
@@ -318,7 +371,7 @@ const GameRoom = () => {
 						setInputText={setInputText}
 						messages={messages}
 						word={words[round]}
-						describerId={describer._id}
+						userIsDescriber={userIsDescriber}
 						setDisplay={setDisplay}
 					/>
 				) : (

@@ -9,7 +9,7 @@ const ChatBox = ({
 	setInputText,
 	messages,
 	word,
-	describerId,
+	userIsDescriber,
 	setDisplay,
 }) => {
 	const { socket } = useSocketContext();
@@ -24,7 +24,7 @@ const ChatBox = ({
 		const message = {
 			sender: user,
 			isBot: null,
-			isDescriber: describerId === user._id,
+			isDescriber: userIsDescriber(),
 			text: inputText,
 		};
 		socket.emit("send-message", { message, word, roomId });
@@ -35,9 +35,9 @@ const ChatBox = ({
 		return index > 0 && messages[index].sender === messages[index - 1]?.sender;
 	};
 
-	const userIsDescriber = () => {
-		return describerId === user._id;
-	};
+	// const userIsDescriber = () => {
+	// 	return describerId === user._id;
+	// };
 
 	useEffect(() => {
 		if (!lastMessageRef.current) return;
