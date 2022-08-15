@@ -13,7 +13,7 @@ const SocketContextProvider = ({ children }) => {
 	const developmentUrl = "http://localhost:5000";
 	const productionUrl = "https://lingpal.herokuapp.com";
 	const { socket, online, connectSocket, disconnectSocket } =
-		useSocket(productionUrl);
+		useSocket(developmentUrl);
 	const { inGame, setPlayers } = useGameContext();
 
 	useEffect(() => {
