@@ -9,7 +9,7 @@ import ChatBox from "../components/ChatBox";
 import Notes from "../components/Notes";
 import { useSocketContext } from "../contexts/SocketContext";
 import { useAuthContext } from "../contexts/AuthContext";
-import { NOTE_TIME, ROUND_NUMBER, TURN_TIME } from "../utils/constants";
+import { TURN_TIME } from "../utils/constants";
 import { useSettingContext } from "../contexts/SettingContext";
 import useAuthAxios from "../hooks/useAuthAxios";
 
@@ -22,8 +22,8 @@ const GameRoom = () => {
 		describerIndex,
 		setDescriberIndex,
 		roomId,
-		setRoomId,
-		setInGame,
+		playerLeftNoteRoom,
+		setPlayerLeftNoteRoom,
 	} = useGameContext();
 
 	const { socket } = useSocketContext();
@@ -36,6 +36,21 @@ const GameRoom = () => {
 	const playerArray = Object.values(players).sort(
 		(player1, player2) => player1.order - player2.order
 	);
+
+	useEffect(() => {
+		if (playerLeftNoteRoom.length > 0) {
+			playerLeftNoteRoom.forEach(player => {
+				socket.emit("someone-left", { player, roomId });
+				if (player.order === describerIndex) {
+					const nextPlayer = playerArray.find(
+						p => !playerLeftNoteRoom.some(pl => pl._id === p._id)
+					);
+					setDescriberIndex(nextPlayer.order);
+				}
+			});
+		}
+		setPlayerLeftNoteRoom([]);
+	}, []);
 
 	const describer = playerArray.find(p => p.order === describerIndex);
 	let { words, notes } = players[describer._id];
@@ -111,7 +126,6 @@ const GameRoom = () => {
 	useEffect(() => {
 		console.log({ playerArray });
 		socket.on("correct-answer", players => {
-			console.log({ players, playerArray });
 			setPlayers(players);
 			endTurn();
 		});
@@ -167,7 +181,6 @@ const GameRoom = () => {
 	}, [socket, playerArray.length]);
 
 	useEffect(() => {
-		console.log("player length", playerArray.length);
 		socket.on("player-left", disconnectingPlayer => {
 			console.log("on player-left");
 			console.log({ players, disconnectingPlayer });

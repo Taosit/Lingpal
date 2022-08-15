@@ -164,6 +164,15 @@ mongoose.connection.once("open", () => {
 			}
 		});
 
+		socket.on("someone-left", ({ player, roomId }) => {
+			delete rooms[roomId].players[player._id];
+			if (Object.keys(rooms[roomId].players).length > 0) {
+				socket.emit("player-left", player);
+			} else {
+				delete rooms[roomId];
+			}
+		});
+
 		socket.on("disconnecting", () => {
 			console.log("disconnecting");
 			const sockeRooms = [...socket.rooms];
@@ -173,11 +182,6 @@ mongoose.connection.once("open", () => {
 				const disconnectingUser = Object.values(rooms[roomId].players).find(
 					p => p.socketId === socket.id
 				);
-				// if (disconnectingUser.order === rooms[roomId].describerIndex) {
-				// 	console.log("interval", rooms[roomId].timer);
-				// 	clearInterval(rooms[roomId].timer);
-				// 	console.log("interval", rooms[roomId].timer);
-				// }
 				delete rooms[roomId].players[disconnectingUser._id];
 				if (Object.keys(rooms[roomId].players).length > 0) {
 					socket.broadcast.to(roomId).emit("player-left", disconnectingUser);
