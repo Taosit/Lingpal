@@ -147,7 +147,7 @@ mongoose.connection.once("open", () => {
 			}
 			if (players) {
 				console.log({ timer: rooms[roomId].timer });
-				rooms[roomId].timer = setTimer(io, roomId, 20);
+				rooms[roomId].timer = setTimer(io, roomId, 120);
 				console.log({ timer: rooms[roomId].timer });
 				rooms[roomId].players = players;
 				io.to(roomId).emit("update-players", players);

@@ -5,7 +5,7 @@ import { useAuthContext } from "../contexts/AuthContext";
 import { URL } from "../utils/constants";
 
 const SignIn = () => {
-	const [email, setEmail] = useState("taosit099@gmail.com");
+	const [email, setEmail] = useState("test@test.com");
 	const [password, setPassword] = useState("test123");
 	const [showPassword, setShowPassword] = useState(false);
 	const [error, setError] = useState(null);
