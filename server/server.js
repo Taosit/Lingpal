@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const connectDb = require("./dbconnect");
 const cookieParser = require("cookie-parser");
 const { v4: uuid } = require("uuid");
+const path = require("path");
 
 const registerRouter = require("./routes/register");
 const loginRouter = require("./routes/login");
@@ -26,8 +27,8 @@ const {
 } = require("./controllers/gameLogic");
 
 connectDb();
-
 const app = express();
+
 const server = http.createServer(app);
 const io = require("socket.io")(server, {
 	cors: {
@@ -44,6 +45,8 @@ app.use(
 	})
 );
 
+const PORT = process.env.PORT || 5000;
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -53,6 +56,21 @@ app.use("/login", loginRouter);
 app.use("/logout", logoutRouter);
 app.use("/refresh-token", refreshTokenRouter);
 app.use("/user", userRouter);
+
+const __dirname1 = path.resolve();
+
+if (process.env.NODE_ENV === "production") {
+	console.log("in production");
+	app.use(express.static(path.resolve(__dirname1, "../client", "build")));
+
+	app.get("*", (req, res) => {
+		res.sendFile(path.resolve(__dirname1, "../client", "build", "index.html"));
+	});
+} else {
+	app.get("/", (req, res) => {
+		res.send("App is running successfully");
+	});
+}
 
 mongoose.connection.once("open", () => {
 	io.on("connection", socket => {
@@ -208,7 +226,7 @@ mongoose.connection.once("open", () => {
 		socket.on("disconnect", () => {});
 	});
 
-	server.listen("5000", () => {
+	server.listen(PORT, () => {
 		console.log("connected to port 5000");
 	});
 });
