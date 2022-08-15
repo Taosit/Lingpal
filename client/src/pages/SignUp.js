@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthTemplate from "../components/AuthTemplate";
 import { useAuthContext } from "../contexts/AuthContext";
+import { URL } from "../utils/constants";
 
 const SignUp = () => {
 	const [username, setUsername] = useState("");
@@ -72,7 +73,7 @@ const SignUp = () => {
 		e.preventDefault();
 		console.log({ username, email, password });
 		const body = JSON.stringify({ username, email, password });
-		fetch("http://localhost:5000/register", {
+		fetch(URL + "/register", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",

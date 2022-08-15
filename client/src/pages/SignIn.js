@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthTemplate from "../components/AuthTemplate";
 import { useAuthContext } from "../contexts/AuthContext";
+import { URL } from "../utils/constants";
 
 const SignIn = () => {
 	const [email, setEmail] = useState("taosit099@gmail.com");
@@ -20,7 +21,7 @@ const SignIn = () => {
 	const submitForm = e => {
 		e.preventDefault();
 		const body = JSON.stringify({ email, password });
-		fetch("http://localhost:5000/login", {
+		fetch(URL + "/login", {
 			method: "POST",
 			credentials: "include",
 			headers: {

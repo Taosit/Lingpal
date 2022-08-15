@@ -1,11 +1,12 @@
 import axios from "axios";
 import { useAuthContext } from "../contexts/AuthContext";
+import { URL } from "../utils/constants";
 
 const useAuthAxios = () => {
 	const { accessToken, setAccessToken } = useAuthContext();
 
 	const authAxios = axios.create({
-		baseURL: "http://localhost:5000/user",
+		baseURL: URL + "/user",
 		headers: {
 			Accept: "application/json",
 			withCredentials: true,
@@ -28,7 +29,7 @@ const useAuthAxios = () => {
 			const prevRequest = error?.config;
 			if (error?.response?.status === 403 && !prevRequest?.sent) {
 				prevRequest.sent = true;
-				const res = await fetch("http://localhost:5000/refresh-token", {
+				const res = await fetch(URL + "/refresh-token", {
 					credentials: "include",
 				});
 				const data = await res.json();

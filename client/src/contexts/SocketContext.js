@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect } from "react";
 import { useSocket } from "../hooks/useSocket";
+import { URL } from "../utils/constants";
 import { useGameContext } from "./GameContext";
 import { useSettingContext } from "./SettingContext";
 
@@ -10,10 +11,7 @@ const useSocketContext = () => {
 };
 
 const SocketContextProvider = ({ children }) => {
-	const developmentUrl = "http://localhost:5000";
-	const productionUrl = "https://lingpal.herokuapp.com";
-	const { socket, online, connectSocket, disconnectSocket } =
-		useSocket(productionUrl);
+	const { socket, online, connectSocket, disconnectSocket } = useSocket(URL);
 	const { inGame, setPlayers } = useGameContext();
 
 	useEffect(() => {

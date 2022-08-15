@@ -9,6 +9,7 @@ import notesIcon from "../assets/notes.png";
 import recordingsIcon from "../assets/recordings.png";
 import uploadIcon from "../assets/upload-image.png";
 import { useGameContext } from "../contexts/GameContext";
+import { URL } from "../utils/constants";
 
 const Dashboard = () => {
 	const { setPlayers, setInGame, setRoomId, setRound, setDescriberIndex } =
@@ -75,7 +76,7 @@ const Dashboard = () => {
 	};
 
 	const logout = () => {
-		fetch("http://localhost:5000/logout", {
+		fetch(URL + "/logout", {
 			credentials: "include",
 		}).then(() => setUser(null));
 	};
