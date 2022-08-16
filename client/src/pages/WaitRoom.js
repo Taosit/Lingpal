@@ -86,9 +86,9 @@ const Waitroom = () => {
 										<h5 className="font-semibold md:text-xl">
 											{player.username}
 										</h5>
-										<p className="text-sm sm:text-base">{`Win: ${(!user.total
+										<p className="text-sm sm:text-base">{`Win: ${(!player.total
 											? 0
-											: (user.win * 100) / user.total
+											: (player.win * 100) / player.total
 										).toFixed(1)}%`}</p>
 									</div>
 								) : (

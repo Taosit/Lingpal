@@ -32,12 +32,11 @@ const app = express();
 const server = http.createServer(app);
 const io = require("socket.io")(server, {
 	cors: {
-		origin: ["http://localhost:*", "https://lingpal.herokuapp.com:*"],
+		origin: ["http://localhost:3000", "https://lingpal.herokuapp.com:*"],
 		methods: ["GET", "POST"],
 		credentials: true,
 	},
 });
-
 const developmentUrl = "http://localhost:3000";
 const productionUrl = "https://lingpal.herokuapp.com";
 

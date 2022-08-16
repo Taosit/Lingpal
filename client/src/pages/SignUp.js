@@ -88,7 +88,7 @@ const SignUp = () => {
 					setUsernameChecker("This username is taken");
 				}
 				if (res.status === 410) {
-					setUsernameChecker("This email is in use");
+					setEmailChecker("This email is in use");
 				}
 				throw new Error();
 			})

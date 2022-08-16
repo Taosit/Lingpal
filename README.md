@@ -1,6 +1,6 @@
-# Lingpal (still in development)
+# Lingpal (still in development, but MVP is ready)
 
-A multiplayer game to practice your target language
+A multiplayer game to practice your target language. Live on https://lingpal.herokuapp.com.
 
 ## How to use
 

@@ -1,4 +1,4 @@
-const NOTE_TIME = 40;
+const NOTE_TIME = 60;
 const TURN_TIME = 120;
 const ROUND_NUMBER = 2;
 const DEVELOPMENT_URL = "http://localhost:5000";
