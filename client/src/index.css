@@ -68,6 +68,10 @@ html {
 	);
 }
 
+.default-background-color {
+	background-color: #f0f0f0;
+}
+
 .orange-circle {
 	position: absolute;
 	top: 0;
