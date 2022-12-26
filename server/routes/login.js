@@ -11,31 +11,27 @@ router.post("/", async (req, res) => {
 	const user = await User.findOne({ email });
 	if (!user) return res.sendStatus(401);
 	const match = await bcrypt.compare(password, user.password);
-	if (!match) {
-		return res.sendStatus(401);
-	}
+	if (!match) return res.sendStatus(401);
 
-	delete user.refreshToken;
-	delete user.password;
+	const {refreshToken, password:databasePassword, ...userCopy} = user._doc;
+	console.log({userCopy})
 
 	const accessToken = jwt.sign(
 		{ email: email },
 		process.env.ACCESS_TOKEN_SECRET,
 		{ expiresIn: "2h" }
 	);
-	const refreshToken = jwt.sign(
+	const newRefreshToken = jwt.sign(
 		{ email: email },
 		process.env.REFRESH_TOKEN_SECRET,
 		{ expiresIn: "1d" }
 	);
-	await User.updateOne({ email }, { $set: { refreshToken } });
-	res.cookie("jwt", refreshToken, {
+	await User.updateOne({ email }, { $set: { newRefreshToken } });
+	res.cookie("jwt", newRefreshToken, {
 		httpOnly: true,
-		// sameSite: "None",
-		// secure: true,
 		maxAge: 24 * 60 * 60 * 1000,
 	});
-	res.status(200).json({ accessToken, user });
+	res.status(200).json({ accessToken, user: userCopy });
 });
 
 module.exports = router;

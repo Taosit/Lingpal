@@ -1276,7 +1276,6 @@ const easyWords = [
   "girl",
   "game",
   "news",
-  "front",
   "future",
   "computer",
   "hair",

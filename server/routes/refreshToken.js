@@ -9,7 +9,7 @@ router.get("/", async (req, res) => {
 
 	const user = await User.findOne({ refreshToken });
 	if (!user) return res.sendStatus(403);
-	const userCopy = { ...user._doc, password: null };
+	const {password, ...userCopy} = user._doc;
 	jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
 		if (err || decoded.email !== user.email) return res.sendStatus(403);
 		console.log("getting new access token");

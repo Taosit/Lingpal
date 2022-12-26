@@ -43,7 +43,7 @@ const productionUrl = "https://lingpal.herokuapp.com";
 
 app.use(
   cors({
-    origin: productionUrl,
+    origin: developmentUrl,
     credentials: true,
   })
 );
@@ -168,7 +168,7 @@ mongoose.connection.once("open", () => {
         };
         socket.broadcast.to(roomId).emit("receive-message", {
           ...confirmMessage,
-          text: `The correct word is ${word}. ${sender.username} got 1 point`,
+          text: `The correct word is ${word}. ${sender.username} got 2 points`,
         });
         socket.emit("receive-message", {
           ...confirmMessage,
