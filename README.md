@@ -26,6 +26,6 @@ An account is needed to play the game. After logging in, you will have access to
 
 ## Currect progress
 
-- UI: Landing page, sign-in and sign-up page, dashboard page, game setting page, waitroom page, note page and game page.
+- UI: Landing page, login and signup page, dashboard page, game setting page, waitroom page, note page and game page.
 - Backend: Auth routes, user route for profile image upload and user database.
 - Socket: Players joining, leaving, turn taking and messaging

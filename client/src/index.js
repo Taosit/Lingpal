@@ -2,10 +2,10 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
-import { SettingContextProvider } from "./contexts/SettingContext";
-import { GameContextProvider } from "./contexts/GameContext";
-import { AuthContextProvider } from "./contexts/AuthContext";
-import { SocketContextProvider } from "./contexts/SocketContext";
+import { SettingContextProvider } from "./utils/contexts/SettingContext";
+import { GameContextProvider } from "./utils/contexts/GameContext";
+import { AuthContextProvider } from "./utils/contexts/AuthContext";
+import { SocketContextProvider } from "./utils/contexts/SocketContext";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
