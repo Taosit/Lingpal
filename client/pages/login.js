@@ -2,10 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import AuthTemplate from "../components/AuthTemplate";
 import { useAuthContext } from "../utils/contexts/AuthContext";
-import { useSocketContext } from "../utils/contexts/SocketContext";
-import { URL } from "../utils/constants";
 
-export default () => {
+export default function Login() {
   const [email, setEmail] = useState("test@test.com");
   const [password, setPassword] = useState("test123");
   const [showPassword, setShowPassword] = useState(false);

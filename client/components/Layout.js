@@ -1,3 +1,3 @@
-export default ({children}) => (
-  <div className="h-screen w-screen overflow-x-hidden">{children}</div>
-)
+export default function Layout({children}) {
+  return <div className="h-screen w-screen overflow-x-hidden">{children}</div>
+}

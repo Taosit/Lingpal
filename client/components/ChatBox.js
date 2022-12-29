@@ -164,7 +164,7 @@ const ChatBox = ({
               ) : (
                 <>
                   <p className="font-semibold text-red-900">
-                    How would you rate {describer.username}'s description?
+                    How would you rate {describer.username}&apos;s description?
                   </p>
                   <StarRatings
                     rating={rating}

@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from 'next/image'
 import chevronLeftIcon from "../assets/chevron-left.png";
 import chevronRightIcon from "../assets/chevron-right.png";
 
-export default () => {
+export default function About () {
   const [page, setPage] = useState(0);
 
   const getContent = () => {
@@ -39,10 +40,10 @@ export default () => {
           <ul className="list-disc pt-2">
             <li className="ml-5">
               Mode: How competitive the game is. In the standard mode, players
-              are not asked to rate the description and the players' statistics
+              are not asked to rate the description and the players&apo;s statistics
               are updated after each game. In the relaxed more, a turn may last
               longer and the description will be rated, but neither the rating
-              nor the score will affect the players' statistics.
+              nor the score will affect the players&apo;s statistics.
             </li>
             <li className="ml-5">
               Level: How hard the words are. The easy level has more concrete
@@ -80,7 +81,12 @@ export default () => {
             onClick={() => setPage(0)}
           >
             <div className="h-6 w-6 rounded-full bg-transparent-50 flex justify-center items-center">
-              <img className="h-4 w-4" src={chevronLeftIcon} alt="Previous" />
+              <Image
+                src={chevronLeftIcon}
+                alt="Previous"
+                width={24}
+                height={24}
+              />
             </div>
             <p className="pl-1 text-lg md:text-xl font-semibold">General</p>
           </div>
@@ -96,7 +102,12 @@ export default () => {
           >
             <p className="pr-1 text-lg md:text-xl font-semibold">Settings</p>
             <div className="h-6 w-6 rounded-full bg-transparent-50 flex justify-center items-center">
-              <img className="h-4 w-4" src={chevronRightIcon} alt="Next" />
+              <Image
+                src={chevronRightIcon}
+                alt="Previous"
+                width={24}
+                height={24}
+              />
             </div>
           </div>
         </div>

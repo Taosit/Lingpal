@@ -4,7 +4,7 @@ import AuthTemplate from "../components/AuthTemplate";
 import { useAuthContext } from "../utils/contexts/AuthContext";
 import { URL } from "../utils/constants";
 
-export default () => {
+export default function Signup() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
