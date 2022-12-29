@@ -24,7 +24,7 @@ const AuthTemplate = ({ children }) => {
 					<div className="w-12">
 						<Image
 							src={lingpalIcon}
-							alt="Picture of the author"
+							alt="My avatar"
 							width={50}
 							height={50}
 						/>

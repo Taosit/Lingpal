@@ -1,21 +1,21 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Image } from "cloudinary-react";
+import { CldImage } from "next-cloudinary"
 import { useRouter } from "next/router";
 import BackgroundTemplate from "../components/BackgroundTemplate";
-import { useGameContext } from "../src/contexts/GameContext";
-import useWindowSize from "../src/utils/hooks/useWindowSize";
-import timerIcon from "../assets/timer.png";
 import ChatBox from "../components/ChatBox";
 import Notes from "../components/Notes";
-import { useSocketContext } from "../src/contexts/SocketContext";
-import { useAuthContext } from "../src/contexts/AuthContext";
+import { useGameContext } from "../utils/contexts/GameContext";
+import { useSocketContext } from "../utils/contexts/SocketContext";
+import { useAuthContext } from "../utils/contexts/AuthContext";
+import { useSettingContext } from "../utils/contexts/SettingContext";
+import useWindowSize from "../utils/hooks/useWindowSize";
+import useAuthAxios from "../utils/hooks/useAuthAxios";
+import timerIcon from "../assets/timer.png";
 import {
   FEEDBACK_TIME,
   TURN_TIME_STANDARD,
   TURN_TIME_RELAXED,
 } from "../utils/constants";
-import { useSettingContext } from "../src/contexts/SettingContext";
-import useAuthAxios from "../src/utils/hooks/useAuthAxios";
 
 export default function GameRoom() {
   const {
@@ -338,12 +338,12 @@ export default function GameRoom() {
                 }`}
               >
                 <div className="h-10 w-10 sm:h-16 sm:w-16 rounded-full overflow-clip mr-1">
-                  <Image
+                  <CldImage
                     className="rounded-full object-contain object-center"
-                    cloudName={process.env.REACT_APP_CLOUDINARY_NAME}
-                    publicId={player.avatar}
-                    width="300"
-                    crop="scale"
+                    width="100"
+                    height="100"
+                    src={player.avatar}
+                    alt="player avatar"
                   />
                 </div>
                 <div className="flex flex-col items-center lg:items-start lg:pl-4">
@@ -423,4 +423,4 @@ export default function GameRoom() {
   );
 };
 
-Dashboard.requireAuth = true
+GameRoom.requireAuth = true

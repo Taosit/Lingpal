@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import NextImage from 'next/image'
-import Image from "cloudinary-react"
+import { CldImage } from "next-cloudinary"
 import Compressor from "compressorjs";
 import { useAuthContext } from "../utils/contexts/AuthContext";
 import useAuthAxios from "../utils/hooks/useAuthAxios";
@@ -46,13 +46,13 @@ export default function Dashboard(){
   const uploadImage = async (imageFile) => {
     console.log("uploading");
     if (!imageFile) return;
-    const allowedType = ["image/jpeg", "image/jpg", "image/png"];
+    const allowedType = ["image/jpeg", "image/jpg", "image/png", "image/svg"];
     if (!allowedType.includes(imageFile.type)) {
       console.log("file not supported");
       return;
     }
-    if (imageFile.size > 100000) {
-      imageFile = await compress(imageFile, { maxWidth: 500 });
+    if (imageFile.size > 10000) {
+      imageFile = await compress(imageFile, { maxWidth: 100 });
     }
     const reader = new FileReader();
     reader.readAsDataURL(imageFile);
@@ -131,13 +131,13 @@ export default function Dashboard(){
                   <div
                     className={`w-12 h-12 md:w-16 md:h-16 rounded-full default-background-color overflow-hidden`}
                   >
-                    {/* <Image
-                      className="rounded-full object-contain object-center"
-                      cloudName="del89ro4h"
-                      publicId={user.avatar || "nruwutqaihxyl7sq6ilm"}
-                      width="300"
-                      crop="scale"
-                    /> */}
+                  <CldImage
+                    className="rounded-full object-contain object-center"
+                    width="100"
+                    height="100" 
+                    src={user.avatar}
+                    alt="user avatar"
+                  />
                   </div>
                   <label className="absolute bottom-0 -right-2 cursor-pointer">
                     <span>

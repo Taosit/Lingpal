@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import BackgroundTemplate from "../components/BackgroundTemplate";
-import { Image } from "cloudinary-react";
+import { CldImage } from "next-cloudinary"
 import NextImage from 'next/image'
 import checkmarkIcon from "../assets/checkmark.png";
 import { useGameContext } from "../utils/contexts/GameContext";
@@ -78,15 +78,15 @@ export default function WaitRoom() {
                     </div>
                   )}
                   <div className="h-10 w-10 md:h-16 md:w-16 rounded-full overflow-clip mr-1">
-                    {/* <Image
+                    <CldImage
                       className={`rounded-full object-contain object-center ${
                         player ? "" : "blur-sm opacity-50"
                       }`}
-                      cloudName={process.env.NEXT_PUBLIC_CLOUDINARY_NAME}
-                      publicId={player?.avatar || "nruwutqaihxyl7sq6ilm"}
-                      width="300"
-                      crop="scale"
-                    /> */}
+                      width="100"
+                      height="100" 
+                      src={player?.avatar || "nruwutqaihxyl7sq6ilm"}
+                      alt="player avatar"
+                    />
                   </div>
                 </div>
                 {player ? (

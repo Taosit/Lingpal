@@ -17,9 +17,10 @@ An account is needed to play the game. After logging in, you will have access to
 ## Technologies
 
 - React
-- TailwindCSS
+- NextJS
 - NodeJS
 - MongoDB
+- TailwindCSS
 - JWT token
 - Socket.io
 - WebRTC.

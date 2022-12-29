@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useSettingContext } from "../utils/contexts/SettingContext";
+import Image from 'next/image'
 import keyboardIcon from "../assets/keyboard.png";
 import microphoneIcon from "../assets/microphone.png";
 
@@ -32,7 +33,12 @@ const BackgroundTemplate = ({ children, animateText, animateVoice }) => {
 				<>
 					<div className={`corner ${animateText ? "glowing-corner" : ""}`}>
 						<div className="img-container">
-							<img src={keyboardIcon} />
+							<Image
+								src={keyboardIcon}
+								alt="a keyboard to indicate that chat is used"
+								width={50}
+								height={50}
+							/>
 						</div>
 					</div>
 				</>
@@ -41,7 +47,12 @@ const BackgroundTemplate = ({ children, animateText, animateVoice }) => {
 				<>
 					<div className={`corner ${animateVoice ? "glowing-corner" : ""}`}>
 						<div className="img-container">
-							<img src={microphoneIcon} />
+							<Image
+								src={microphoneIcon}
+								alt="a microphone to indicate that voice is used"
+								width={50}
+								height={50}
+							/>
 						</div>
 					</div>
 				</>
