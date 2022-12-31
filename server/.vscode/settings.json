@@ -1,0 +1,4 @@
+{
+  "appService.defaultWebAppToDeploy": "/subscriptions/882b3053-df58-432c-84c6-e533679fe3ee/AppServices/subscriptions/882b3053-df58-432c-84c6-e533679fe3ee/resourceGroups/linpal_group/providers/Microsoft.Web/sites/lingpal",
+  "appService.deploySubpath": "."
+}

@@ -1,6 +1,5 @@
 const express = require("express");
 const http = require("http");
-require("dotenv").config();
 const cors = require("cors");
 const { v4: uuid } = require("uuid");
 const path = require("path");
@@ -17,43 +16,48 @@ const {
   flattenWaitroom,
 } = require("./controllers/gameLogic");
 
+const developmentUrl = "http://localhost:3000";
+const productionUrl = "https://linpal.vercel.app";
+
 const app = express();
 
 const server = http.createServer(app);
 const io = require("socket.io")(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://lingpal.herokuapp.com:*"],
-    methods: ["GET", "POST"],
-    credentials: true,
+    origin: [developmentUrl, `${productionUrl}:*`],
   },
 });
-const developmentUrl = "http://localhost:3000";
-const productionUrl = "https://lingpal.herokuapp.com";
 
 app.use(
-  cors({
-    origin: developmentUrl,
-    credentials: true,
-  })
+  cors()
 );
+
+// app.use((req, res, next) => {
+//   res.header('Access-Control-Allow-Origin', '*');
+//   next();
+// });
 
 const PORT = process.env.PORT || 5000;
 
 
-const __dirname1 = path.resolve();
+// const __dirname1 = path.resolve();
+//
+// if (process.env.NODE_ENV === "production") {
+//   console.log("in production");
+//   app.use(express.static(path.resolve(__dirname1, "client", "build")));
 
-if (process.env.NODE_ENV === "production") {
-  console.log("in production");
-  app.use(express.static(path.resolve(__dirname1, "client", "build")));
+//   app.get("*", (req, res) => {
+//     res.sendFile(path.resolve(__dirname1, "client", "build", "index.html"));
+//   });
+// } else {
+//   app.get("/", (req, res) => {
+//     res.send("App is running successfully");
+//   });
+// }
 
-  app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname1, "client", "build", "index.html"));
-  });
-} else {
-  app.get("/", (req, res) => {
-    res.send("App is running successfully");
-  });
-}
+app.get("/status", (req, res) => {
+  res.send("App is running successfully");
+});
 
 io.on("connection", (socket) => {
   console.log("connected");
