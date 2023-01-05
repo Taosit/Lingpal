@@ -12,7 +12,6 @@ import recordingsIcon from "../assets/recordings.png";
 import uploadIcon from "../assets/upload-image.png";
 import infoIcon from "../assets/info.png";
 import { useGameContext } from "../utils/contexts/GameContext";
-import { URL } from "../utils/constants";
 
 export default function Dashboard(){
   const { setPlayers, setInGame, setRoomId, setRound, setDescriberIndex } =

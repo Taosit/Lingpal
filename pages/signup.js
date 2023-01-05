@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import AuthTemplate from "../components/AuthTemplate";
 import { useAuthContext } from "../utils/contexts/AuthContext";
-import { URL } from "../utils/constants";
 
 export default function Signup() {
   const [username, setUsername] = useState("");

@@ -1,8 +1,5 @@
-
-import { useRouter } from "next/router"
 import { useEffect, useState } from "react";
 import { useAuthContext } from "../utils/contexts/AuthContext";
-import { URL } from "../utils/constants";
 
 const PersistLogin = ({children}) => {
 	const [loading, setLoading] = useState(true);
