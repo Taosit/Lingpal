@@ -18,7 +18,6 @@ export default function Dashboard(){
     useGameContext();
   const { user, setUser} = useAuthContext();
   const authAxios = useAuthAxios();
-  console.log(process.env.NEXT_PUBLIC_CLOUDINARY_NAME)
 
   const win = !user.total ? 0 : ((user.win * 100) / user.total).toFixed(1);
   const hardPlayer = !user.total
@@ -45,7 +44,7 @@ export default function Dashboard(){
   const uploadImage = async (imageFile) => {
     console.log("uploading");
     if (!imageFile) return;
-    const allowedType = ["image/jpeg", "image/jpg", "image/png", "image/svg"];
+    const allowedType = ["image/jpeg", "image/jpg", "image/png"];
     if (!allowedType.includes(imageFile.type)) {
       console.log("file not supported");
       return;
@@ -109,18 +108,16 @@ export default function Dashboard(){
           data-text="dashboard"
           className="mb-8 text-3xl md:text-4xl text-orange-700 font-semibold text-center"
         >
-          dashboard
+          Dashboard
         </h1>
-        <Link href="/about">
-          <div className="absolute right-0 top-0 flex items-center cursor-pointer">
-            <NextImage
-              src={infoIcon}
-              alt="about the game"
-              width={24}
-              height={24}
-            />
-            <h5 className="text-orange-400 ml-1 font-semibold">about</h5>
-          </div>
+        <Link href="/about" className="absolute right-0 top-0 flex items-center cursor-pointer">
+          <NextImage
+            src={infoIcon}
+            alt="about the game"
+            width={24}
+            height={24}
+          />
+          <h5 className="text-orange-400 ml-1 font-semibold">About</h5>
         </Link>
         <div className="bg-transparent-50 w-full p-4 rounded-2xl flex items-center border-orange-700 border-2">
           <div className="w-full flex justify-center items-center">
@@ -180,14 +177,14 @@ export default function Dashboard(){
           </div>
         </div>
         <div className="w-full flex justify-end">
-          <p
+          <button
             onClick={logout}
             className="mt-2 cursor-pointer text-red-700 font-semibold"
           >
             Logout
-          </p>
+          </button>
         </div>
-        <div className="w-full my-4 md:my-8 grid grid-cols-1 gap-2 md:grid-cols-2">
+        {/* <div className="w-full my-4 md:my-8 grid grid-cols-1 gap-2 md:grid-cols-2">
           <div className="p-4 cursor-pointer flex justify-center items-center rounded-xl bg-orange-300">
             <div className="w-12 aspect-square">
               <NextImage
@@ -210,7 +207,7 @@ export default function Dashboard(){
             </div>
             <h3 className="ml-2 text-lg sm:text-xl">Recordings</h3>
           </div>
-        </div>
+        </div> */}
 
         <div className="w-full pb-8 flex flex-col">
           <button className="play-button self-center" onClick={play}>

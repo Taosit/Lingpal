@@ -70,7 +70,7 @@ export default function About () {
           Back
         </Link>
         <h1 className="text-xl md:text-3xl text-center font-bold my-4 sm:my-6 text-orange-700">
-          about Lingpal
+          About Lingpal
         </h1>
         {getContent()}
         <div className="absolute bottom-0 my-4 md:my-8 w-full flex justify-between md:justify-evenly items-center">

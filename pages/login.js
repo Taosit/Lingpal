@@ -80,7 +80,9 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
               />
               <span
+                tabIndex='0'
                 onClick={() => setShowPassword((prev) => !prev)}
+                onKeyDown={e => e.key === "Enter" && setShowPassword((prev) => !prev)}
                 className="absolute  cursor-pointer top-8 right-2 text-orange-500 font-semibold"
               >
                 {showPassword ? "hide" : "show"}

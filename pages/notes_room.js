@@ -8,7 +8,7 @@ import { useSocketContext } from "../utils/contexts/SocketContext";
 import { NOTE_TIME, TURN_TIME } from "../utils/constants";
 
 export default function NoteRoom() {
-  const { players, setPlayers, round, roomId, setPlayerLeftNoteRoom } =
+  const { players, setPlayers, describerIndex, setDescriberIndex, round, roomId, setPlayerLeftNoteRoom } =
     useGameContext();
 
   const { socket } = useSocketContext();
@@ -62,6 +62,13 @@ export default function NoteRoom() {
   useEffect(() => {
     socket.on("player-left", (disconnectingPlayer) => {
       setPlayerLeftNoteRoom((prev) => [...prev, disconnectingPlayer]);
+      if (disconnectingPlayer.order === describerIndex) {
+        const nextPlayer = Object.values(players).find(
+          p => p.order > disconnectingPlayer.order
+        );
+        console.log("setting describer index")
+        setDescriberIndex(nextPlayer.order);
+      }
     });
 
     return () => socket.off("player-left");
@@ -136,23 +143,23 @@ export default function NoteRoom() {
                   {notes.map((note, i) => {
                     if (!note) {
                       return (
-                        <div
+                        <button
                           key={i}
                           className="w-full h-full max-h-24 sm:max-h-full border-2 border-dashed border-white flex justify-center items-center cursor-pointer"
                           onClick={() => setActiveNote(i)}
                         >
                           <p className="text-2xl text-white">+</p>
-                        </div>
+                        </button>
                       );
                     }
                     return (
-                      <div
+                      <button
                         key={i}
                         className="w-full h-full max-h-24 sm:max-h-full px-4 py-2 bg-yellow-200 cursor-pointer drop-shadow-md text-sm md:text-base"
                         onClick={() => setActiveNote(i)}
                       >
                         {note.length > 100 ? `${note.slice(0, 100)}...` : note}
-                      </div>
+                      </button>
                     );
                   })}
                 </div>

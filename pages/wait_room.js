@@ -55,12 +55,12 @@ export default function WaitRoom() {
             <div className="font-semibold md:text-lg py-1">
               Waiting for other players to join...
             </div>
-            <div
+            <button
               className="text-lg font-semibold md:text-xl text-red-800 hover:cursor-pointer py-1"
               onClick={leaveRoom}
             >
               Leave Room
-            </div>
+            </button>
           </div>
           <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-2">
             {getPlayerArray().map((player, i) => (
@@ -69,12 +69,11 @@ export default function WaitRoom() {
                   {player?.isReady && (
                     <div className="absolute top-0 -right-5 w-6 h-6 opacity-50">
                       <NextImage
-                        src={lingpalIcon}
+                        src={checkmarkIcon}
                         alt="Player is ready"
                         width={50}
                         height={50}
                       />
-                      <img src={checkmarkIcon} alt="Player is ready" />
                     </div>
                   )}
                   <div className="h-10 w-10 md:h-16 md:w-16 rounded-full overflow-clip mr-1">

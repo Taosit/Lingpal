@@ -1,4 +1,4 @@
-const NOTE_TIME = 10;
+const NOTE_TIME = 60;
 const TURN_TIME_STANDARD = 90;
 const TURN_TIME_RELAXED = 150;
 const FEEDBACK_TIME = 5;

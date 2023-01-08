@@ -62,7 +62,7 @@ export default function GameSettings() {
           New Game
         </h1>
         <div className="grid grid-cols-2 gap-4">
-          <div
+          <button
             className="flex justify-center items-center hover:cursor-pointer"
             onClick={() => updateSetting("mode", "standard")}
           >
@@ -78,8 +78,8 @@ export default function GameSettings() {
             >
               Standard
             </p>
-          </div>
-          <div
+          </button>
+          <button
             className="flex justify-center items-center hover:cursor-pointer"
             onClick={() => updateSetting("mode", "relaxed")}
           >
@@ -95,10 +95,10 @@ export default function GameSettings() {
             >
               Relaxed
             </p>
-          </div>
+          </button>
           {mode ? (
             <>
-              <motion.div
+              <motion.button
                 variants={optionVariants}
                 initial="hidden"
                 animate="show"
@@ -117,8 +117,8 @@ export default function GameSettings() {
                 >
                   Easy
                 </p>
-              </motion.div>
-              <motion.div
+              </motion.button>
+              <motion.button
                 variants={optionVariants}
                 initial="hidden"
                 animate="show"
@@ -137,7 +137,7 @@ export default function GameSettings() {
                 >
                   Hard
                 </p>
-              </motion.div>
+              </motion.button>
             </>
           ) : (
             <>
@@ -147,7 +147,7 @@ export default function GameSettings() {
           )}
           {level ? (
             <>
-              <motion.div
+              <motion.button
                 variants={optionVariants}
                 initial="hidden"
                 animate="show"
@@ -166,8 +166,8 @@ export default function GameSettings() {
                 >
                   Text
                 </p>
-              </motion.div>
-              <motion.div
+              </motion.button>
+              <motion.button
                 variants={optionVariants}
                 initial="hidden"
                 animate="show"
@@ -186,7 +186,7 @@ export default function GameSettings() {
                 >
                   Voice
                 </p>
-              </motion.div>
+              </motion.button>
             </>
           ) : (
             <>
@@ -196,8 +196,9 @@ export default function GameSettings() {
           )}
         </div>
         {describer ? (
-          <motion.div
+          <motion.button
             variants={optionVariants}
+            onClick={play}
             initial="hide"
             animate="show"
             className="w-full text-right text-white mt-2 md:text-2xl font-semibold"
@@ -206,11 +207,10 @@ export default function GameSettings() {
               whileHover={{ scale: 1.05 }}
               style={{ originX: "80%" }}
               className="hover:cursor-pointer"
-              onClick={play}
             >
               {">> Play"}
             </motion.p>
-          </motion.div>
+          </motion.button>
         ) : (
           <div className="w-16 h-8 md:h-10"></div>
         )}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { CldImage } from "next-cloudinary"
+import Image from 'next/image'
 import { useRouter } from "next/router";
 import BackgroundTemplate from "../components/BackgroundTemplate";
 import ChatBox from "../components/ChatBox";
@@ -49,13 +50,7 @@ export default function GameRoom() {
     if (playerLeftNoteRoom.length > 0) {
       console.log("in use effect - some players left");
       playerLeftNoteRoom.forEach((player) => {
-        socket.emit("someone-left", { player, roomId });
-        if (player.order === describerIndex) {
-          const nextPlayer = playerArray.find(
-            (p) => !playerLeftNoteRoom.some((pl) => pl._id === p._id)
-          );
-          setDescriberIndex(nextPlayer.order);
-        }
+        socket.emit("someone-left", { player, roomId });        
       });
     }
     setPlayerLeftNoteRoom([]);
@@ -153,7 +148,6 @@ export default function GameRoom() {
   }, [socket]);
 
   useEffect(() => {
-    console.log({ playerArray });
     socket.on("correct-answer", (players) => {
       setPlayers(players);
       endTurn();
@@ -304,7 +298,6 @@ export default function GameRoom() {
   }, [describerIndex]);
 
   useEffect(() => {
-    console.log({ time });
     if (time === null || time > 0) return;
 
     const messageText = `Time out... ${
@@ -367,18 +360,24 @@ export default function GameRoom() {
             Quit
           </button>
           <div className="flex items-center">
-            <img src={timerIcon} alt="time ramaining" />
+            <Image
+              src={timerIcon}
+              alt="time ramaining"
+              width={24}
+              height={24}
+            />
             <p className="ml-2 text-white font-semibold md:text-xl">
               {formatTime(time)}
             </p>
           </div>
-          {userIsDescriber() ? (
+          {/* {userIsDescriber() ? (
             <div className="w-20 sm:w-24 h-2"></div>
           ) : (
             <button className="py-1 px-2 rounded-lg bg-red-600 text-white font-semibold text-sm sm:text-base z-10">
               Rule Break
             </button>
-          )}
+          )} */}
+          <div className="w-20 sm:w-24 h-2"></div>
         </div>
         {userIsDescriber() && windowSize.width >= 1024 ? (
           <div className="h-full w-full flex">
