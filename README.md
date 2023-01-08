@@ -1,6 +1,7 @@
 # Lingpal (still in development, but MVP is ready)
 
-A multiplayer game to practice your target language. Live on https://lingpal.herokuapp.com.
+A multiplayer game to practice your target language. Live on [https://lingpal.vercel.app/](https://lingpal.vercel.app/).
+Backend repo: [https://github.com/Taosit/Linpal-server](https://github.com/Taosit/Linpal-server).
 
 ## How to use
 
@@ -18,12 +19,11 @@ An account is needed to play the game. After logging in, you will have access to
 
 - React
 - NextJS
-- NodeJS
+- Deno
 - MongoDB
 - TailwindCSS
 - JWT token
 - Socket.io
-- WebRTC.
 
 ## Currect progress
 
