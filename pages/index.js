@@ -26,32 +26,33 @@ const Page = () => {
 					</div>
 				</div>
 				<div className="orange-circle"></div>
-				<div className="green-circle"></div>
-				<div className="relative z-10 h-3/5 p-4 sm:p-8 flex flex-col justify-around text-center text-white lg:h-2/3 lg:aspect-[5/3]">
-					<h1 className="text-3xl tracking-wide mb-4 sm:text-4xl md:text-5xl sm:leading-normal md:leading-relaxed lg:text-4xl lg:leading-normal lg:pt-0 xl:text-6xl xl:leading-normal">
-						Practicing languages can be easy and fun
-					</h1>
-					<p className="text-lg sm:text-xl md:text-3xl lg:text-xl xl:text-2xl sm:leading-relaxed">
-						Meet other learners through interactive games that get you started
-						with speaking right away
-					</p>
-					<div className="flex justify-evenly pt-2">
-						<button
-							onClick={() => navigate("/signup")}
-							className="signup-button sm:text-2xl md:text-3xl lg:text-2xl px-4 py-2 font-semibold border-2 border-white rounded outline-1 outline outline-offset-1 hover:underline active:outline-none"
-						>
-							Sign up
-						</button>
-						<button
-							onClick={() => navigate("/login")}
-							className="sm:text-2xl md:text-3xl lg:text-2xl font-semibold hover:underline"
-						>
-							Log In
-						</button>
+				<div className="green-circle">
+					<div className="text-inside flex flex-col justify-around items-center text-center text-white">
+						<h1 className="max-w-xl lg:max-w-2xl md:w-11/12 text-3xl tracking-wide sm:text-4xl sm:leading-normal md:leading-relaxed lg:leading-normal lg:pt-0 xl:text-5xl xl:leading-normal">
+							Practicing languages can be easy and fun
+						</h1>
+						<p className="mt-4 text-lg sm:text-xl xl:text-2xl sm:leading-relaxed">
+							Meet other learners through interactive games that get you started
+							with speaking right away
+						</p>
+						<div className="mt-8 w-full flex justify-evenly pt-2">
+							<button
+								onClick={() => navigate("/signup")}
+								className="signup-button sm:text-2xl px-4 py-2 font-semibold border-2 border-white rounded outline-1 outline outline-offset-1 hover:underline active:outline-none"
+							>
+								Sign up
+							</button>
+							<button
+								onClick={() => navigate("/login")}
+								className="sm:text-2xl font-semibold hover:underline"
+							>
+								Log In
+							</button>
+						</div>
 					</div>
 				</div>
-				<div className="absolute bottom-0 right-0 w-2/3 flex justify-end sm:h-1/3 lg:h-3/5 p-2 md:p-4">
-					<Image src={coverImage}
+				<div className="absolute bottom-0 right-0 w-screen md:w-auto lg:w-screen flex justify-end">
+					<Image className="w-5/6 md:w-[32rem] lg:w-1/3 max-w-xl"  src={coverImage}
 						alt="woman playing game"
 						width={400}
 						height={300} />

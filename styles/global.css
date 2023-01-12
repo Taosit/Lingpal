@@ -74,45 +74,88 @@ html {
 
 .orange-circle {
 	position: absolute;
-	top: 0;
-	left: 0;
-	height: 95vh;
-	aspect-ratio: 20/19;
-	border-radius: 50%;
+	--top: 28vh;
+	--left: 15vw;
+	--width: min(70vw, 1000px);
+	--height: min(120vh, 70vw, 950px);
+	--padding-x: 1em;
+	--padding-y: 3em;
+	top: calc(var(--top) * (-1));
+	left: calc(var(--left) * (-1));
+	width: var(--width);
+	height: var(--height);
 
+	border-radius: 50%;
 	background: #ff7a00;
 	box-shadow: 20px 20px 20px 5px rgba(0, 0, 0, 0.25);
-	transform: translate(-10%, -15%) rotate(137.73deg);
 }
 
 .green-circle {
 	position: absolute;
-	top: 0;
-	left: 0;
-	height: 110vh;
-	aspect-ratio: 11/9;
+	--top: 35vh;
+	--left: 15vw;
+	--width: min(80vw, 1200px);
+	--height: min(120vh, 70vw, 950px);
+	--padding-x: 1em;
+	--padding-y: 3em;
+	top: calc(var(--top) * (-1));
+	left: calc(var(--left) * (-1));
+	width: var(--width);
+	height: var(--height);
 	border-radius: 50%;
 	background: #46d387;
 	box-shadow: 5px 10px 20px rgba(0, 0, 0, 0.25);
-	transform: translate(-12%, -30%) rotate(20.55deg);
 }
 
-@media (max-width: 1023px) {
+.text-inside {
+	position: absolute;
+	top: calc(var(--top) + var(--padding-y));
+	left: calc(var(--left) + var(--padding-x));
+	width: calc(var(--width) - var(--left) - 2 * var(--padding-x) - 1em);
+	max-width: calc(100vw - 2 * var(--padding-x));
+}
+
+@media (max-width: 1023px) and (orientation: portrait) {
 	.orange-circle {
-		transform: translate(-20%, -15%) rotate(137.73deg);
+		--left: 20vw;
+		--width: 100vw;
+		--height: 100vh;
+		--padding-y: calc(76px + 2em);
 	}
 	.green-circle {
-		height: 100vh;
-		transform: translate(-35%, -25%) rotate(20.55deg);
+		--width: 120vw;
+		--height: 100vh;
+		--padding-y: calc(76px + 2em);
+	}
+}
+
+@media (max-width: 1023px) and (orientation: landscape) {
+	.orange-circle {
+		--top: 10vh;
+		--left: 20vw;
+		--width: 80vw;
+		--height: 100vh;
+		--padding-y: calc(76px + 2em);
+	}
+	.green-circle {
+    --width: 100vw;
+    --height: 120vh;
+    --padding-y: calc(76px + 1em);
 	}
 }
 
 @media (max-width: 450px) {
 	.orange-circle {
-		transform: translate(-25%, -25%) rotate(137.73deg);
+		--left: 20vw;
+    --width: 160vw;
+    --height: 180vw;
+    --padding-y: calc(76px + 1em);
 	}
 	.green-circle {
-		transform: translate(-47%, -30%) rotate(20.55deg);
+    --left: 30vw;
+    --width: 150vw;
+    --height: 190vw;
+    --padding-y: calc(76px + 1em);
 	}
 }
 
