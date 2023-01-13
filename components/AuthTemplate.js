@@ -1,7 +1,9 @@
 import React from "react";
 import { useRouter } from 'next/router';
 import Image from 'next/image'
-import lingpalIcon from "../assets/lingpal.png";
+import lingpalIcon from "../assets/logo.svg";
+import girlImage from "../assets/girl.png";
+import {Card, CardBody, CardHeader} from "./Card";
 
 const AuthTemplate = ({ children }) => {
 	const router = useRouter()
@@ -15,46 +17,48 @@ const AuthTemplate = ({ children }) => {
 		: "unknown";
 
 	return (
-		<div className="light-yellow h-screen relative flex justify-center items-center px-4">
-			<div className="absolute top-0 z-10 w-full flex justify-start lg:justify-end">
-				<div
-					onClick={() => navigate("/")}
-					className="cursor-pointer flex items-center m-2 sm:mx-8 sm:my-4"
-				>
-					<div className="w-12">
-						<Image
-							src={lingpalIcon}
-							alt="My avatar"
-							width={50}
-							height={50}
-						/>
-					</div>
-					<p className="pl-2 font-bold sm:text-xl md:text-2xl md:pl-4">
-						Lingpal
-					</p>
-				</div>
+		<div className="cyan-gradient flex flex-col h-screen relative">
+			<div 
+			onClick={() => navigate("/")}
+			className="cursor-pointer flex items-center p-2 sm:py-4 absolute">
+				<Image
+					className="w-12 md:w-20"
+					src={lingpalIcon}
+					alt="logo"
+					width={50}
+					height={50}
+					/>
+				<p className="pl-2 font-bold sm:text-xl md:text-2xl md:pl-4">
+					Lingpal
+				</p>
 			</div>
-			<div className="auth-form w-full max-w-md h-500 md:h-700 lg:h-5/6 rounded-2xl md:rounded-3xl bg-white pt-4 md:mt-8 grid grid-rows-layout5">
-				<div className="auth-separator mb-2 px-4 md:px-8">
-					<button
-						onClick={() => navigate("/signup")}
-						className={`text-orange-500 text-xl p-2 font-semibold ${
-							authType === "signUp" ? "border-b-2 border-b-orange-500" : ""
-						}`}
-					>
-						Sign Up
+			<div className="flex grow justify-center items-center">
+				<Card className='w-96 max-w-[90%]'>
+					<CardHeader className='flex gap-4 text-xl pt-4 pb-1 px-6 md:px-8'>
+						<button
+							onClick={() => navigate("/signup")}
+							className={`${
+								authType === "signUp" ? "border-b-2 border-b-white" : ""
+							}`}
+						>
+							Sign Up
+						</button>
+						<button
+							onClick={() => navigate("/login")}
+							className={` ${
+								authType === "signIn" ? "border-b-2 border-b-white" : ""
+							}`}
+						>
+							Log In
 					</button>
-					<button
-						onClick={() => navigate("/login")}
-						className={`text-orange-500 text-xl p-2 font-semibold ml-4 ${
-							authType === "signIn" ? "border-b-2 border-b-orange-500" : ""
-						}`}
-					>
-						Log In
-					</button>
-				</div>
-				{children}
+					</CardHeader>
+					<CardBody className='w-3xl'>{children}</CardBody>
+				</Card>
 			</div>
+			<Image className="auth-image"  src={girlImage}
+				alt="woman with laptop"
+				width={400}
+				height={300} />
 		</div>
 	);
 };

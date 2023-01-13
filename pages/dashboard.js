@@ -6,12 +6,15 @@ import { CldImage } from "next-cloudinary"
 import Compressor from "compressorjs";
 import { useAuthContext } from "../utils/contexts/AuthContext";
 import useAuthAxios from "../utils/hooks/useAuthAxios";
-import lingpalIcon from "../assets/lingpal.png";
-import notesIcon from "../assets/notes.png";
-import recordingsIcon from "../assets/recordings.png";
-import uploadIcon from "../assets/upload-image.png";
+import lingpalIcon from "../assets/logo.svg";
+import uploadIcon from "../assets/upload-image.svg";
+import pencilIcon from "../assets/pencil.svg";
+import gamelIcon from "../assets/game.svg";
+import badgeIcon from "../assets/badge.svg";
+import gearsIcon from "../assets/gears.svg";
 import infoIcon from "../assets/info.png";
 import { useGameContext } from "../utils/contexts/GameContext";
+import { Card, CardBody, CardHeader } from "../components/Card";
 
 export default function Dashboard(){
   const { setPlayers, setInGame, setRoomId, setRound, setDescriberIndex } =
@@ -87,7 +90,7 @@ export default function Dashboard(){
   };
 
   return (
-    <div className="light-yellow h-screen overflow-hidden">
+    <div className="cyan-gradient h-screen overflow-hidden">
       <div className="relative top-0 z-10 w-full flex justify-start">
         <div className="flex items-center m-2 sm:ml-8 sm:mt-4">
           <div className="w-12">
@@ -103,13 +106,7 @@ export default function Dashboard(){
           </p>
         </div>
       </div>
-      <div className="h-2/3 sm:h-5/6 w-5/6 md:w-2/3 max-w-4xl mx-auto relative">
-        <h1
-          data-text="dashboard"
-          className="mb-8 text-3xl md:text-4xl text-orange-700 font-semibold text-center"
-        >
-          Dashboard
-        </h1>
+      <div className="w-full mx-auto relative flex flex-col items-center">
         <Link href="/about" className="absolute right-0 top-0 flex items-center cursor-pointer">
           <NextImage
             src={infoIcon}
@@ -119,63 +116,83 @@ export default function Dashboard(){
           />
           <h5 className="text-orange-400 ml-1 font-semibold">About</h5>
         </Link>
-        <div className="bg-transparent-50 w-full p-4 rounded-2xl flex items-center border-orange-700 border-2">
-          <div className="w-full flex justify-center items-center">
-            <div className="flex flex-col items-start">
-              <div className="flex justify-center items-center">
-                <div className="relative">
-                  <div
-                    className={`w-12 h-12 md:w-16 md:h-16 rounded-full default-background-color overflow-hidden`}
-                  >
-                  <CldImage
-                    className="rounded-full object-contain object-center"
-                    width="100"
-                    height="100" 
-                    src={user.avatar}
-                    alt="user avatar"
+        <Card className="w-96 max-w-[90%]">
+          <CardHeader className='flex justify-end pt-6 px-6 pb-1'>
+            <label 
+            className="cursor-pointer absolute left-12 bottom-2 h-8 w-20 p-1 rounded bg-[#D9D9D9B0] flex justify-end items-center">
+              <NextImage
+                src={uploadIcon}
+                alt="upload image"
+                width={24}
+                height={24}
+              />
+              <input
+                tabIndex="0"
+                onChange={(e) => uploadImage(e.target.files[0])}
+                type="file"
+                className="hidden"
+              />
+            </label>
+            <CldImage
+              className="absolute left-4 bottom-2 w-20 rounded-full object-contain object-center"
+              width="100"
+              height="100" 
+              src={user.avatar}
+              alt="user avatar"
+            />
+            <div className="relative mb-1 text-lg text-semibold rounded bg-[#D9D9D9B0] h-8 px-2 py-1 text-color1-dark flex gap-2">
+              <p>{user.username}</p>
+              <NextImage
+                src={pencilIcon}
+                alt="pencil"
+                width={24}
+                height={24}
+              />
+            </div>
+          </CardHeader>
+          <CardBody className='px-6 py-8'>
+            <div className="flex flex-col">
+              <div className="my-4 md:text-lg flex justify-between">
+                <span className="flex gap-2">
+                  <NextImage
+                    src={gamelIcon}
+                    alt="game"
+                    width={24}
+                    height={24}
                   />
-                  </div>
-                  <label className="absolute bottom-0 -right-2 cursor-pointer">
-                    <span>
-                      <NextImage
-                        src={uploadIcon}
-                        alt="upload image"
-                        width={24}
-                        height={24}
-                      />
-                    </span>
-                    <input
-                      onChange={(e) => uploadImage(e.target.files[0])}
-                      type="file"
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-                <p className="pl-2 sm:pl-4 md:text-xl font-bold">
-                  {user.username}
-                </p>
+                  <p>Total</p>
+                </span>
+                <span className="">{user.total}</span>
               </div>
-              <p className="pt-4 text-sm sm:text-base md:text-lg">
-                Learning <span className="font-semibold">English</span>
-              </p>
-            </div>
-          </div>
-          <div className="w-full h-full flex justify-center items-center">
-            <div className="flex flex-col items-start">
-              <div className="text-sm py-1 sm:text-base md:text-lg">
-                <span className="font-semibold">Played</span>:{" "}
-                {` ${user.total}`}
+              <hr/>
+              <div className="my-4 md:text-lg flex justify-between">
+                <span className="flex gap-2">
+                  <NextImage
+                    src={badgeIcon}
+                    alt="winning badge"
+                    width={24}
+                    height={24}
+                  />
+                  <p>Win</p>
+                </span>
+                <span className="">{win}%</span>
               </div>
-              <div className="text-sm py-1 sm:text-base md:text-lg">
-                <span className="font-semibold">Win</span>: {` ${win}%`}
-              </div>
-              <div className="text-sm py-1 sm:text-base md:text-lg">
-                <span className="font-semibold">Hard Player</span>:{" "}
-                {` ${hardPlayer}%`}
+              <hr/>
+              <div className="my-4 md:text-lg flex justify-between">
+                <span className="flex gap-2">
+                  <NextImage
+                    src={gearsIcon}
+                    alt="3 gears"
+                    width={24}
+                    height={24}
+                  />
+                  <p>Hard</p>
+                </span>
+                <span className="">{hardPlayer}%</span>
               </div>
             </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
         <div className="w-full flex justify-end">
           <button
             onClick={logout}
@@ -184,31 +201,6 @@ export default function Dashboard(){
             Logout
           </button>
         </div>
-        {/* <div className="w-full my-4 md:my-8 grid grid-cols-1 gap-2 md:grid-cols-2">
-          <div className="p-4 cursor-pointer flex justify-center items-center rounded-xl bg-orange-300">
-            <div className="w-12 aspect-square">
-              <NextImage
-                src={notesIcon}
-                alt="view notes"
-                width={50}
-                height={50}
-              />
-            </div>
-            <h3 className="ml-2 text-lg sm:text-xl">Notes</h3>
-          </div>
-          <div className="p-4 cursor-pointer flex justify-center items-center rounded-xl bg-green-300">
-            <div className="w-12 aspect-square">
-              <NextImage
-                src={recordingsIcon}
-                alt="view recordings"
-                width={50}
-                height={50}
-              />
-            </div>
-            <h3 className="ml-2 text-lg sm:text-xl">Recordings</h3>
-          </div>
-        </div> */}
-
         <div className="w-full pb-8 flex flex-col">
           <button className="play-button self-center" onClick={play}>
             Play

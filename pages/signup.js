@@ -10,10 +10,10 @@ export default function Signup() {
   const [password2, setPassword2] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
-  const [usernameChecker, setUsernameChecker] = useState(null);
-  const [emailChecker, setEmailChecker] = useState(null);
-  const [passwordChecker, setPasswordChecker] = useState(null);
-  const [password2Checker, setPassword2Checker] = useState(null);
+  const [usernameChecker, setUsernameChecker] = useState({isValid: null, message: ''});
+  const [emailChecker, setEmailChecker] = useState({isValid: null, message: ''});
+  const [passwordChecker, setPasswordChecker] = useState({isValid: null, message: ''});
+  const [password2Checker, setPassword2Checker] = useState({isValid: null, message: ''});
 
   const { setUser, setAccessToken } = useAuthContext();
 
@@ -21,52 +21,60 @@ export default function Signup() {
 	const navigate = router.push;
 
   useEffect(() => {
-    if (username) setUsernameChecker(null);
+    if (!username) {
+      setUsernameChecker({isValid: null, message: ''});
+      return;
+    }
+    if (username.length < 3) {
+      setUsernameChecker({isValid: false, message: 'Username too short'});
+      return;
+    }
+    setUsernameChecker({isValid: true, message: ''});
   }, [username]);
 
   useEffect(() => {
     if (!email) {
-      setEmail(null);
+      setEmailChecker({isValid: null, message: ''});
       return;
     }
     const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     if (!regex.test(email)) {
-      setEmailChecker("Invalid email");
+      setEmailChecker({isValid: false, message: 'Invalid email'});
       return;
     }
-    setEmailChecker(null);
+    setEmailChecker({isValid: true, message: ''});
   }, [email]);
 
   useEffect(() => {
     if (!password) {
-      setPasswordChecker(null);
+      setPasswordChecker({isValid: null, message: ''});
       return;
     }
     if (password.length < 6) {
-      setPasswordChecker("Password too short");
+      setPasswordChecker({isValid: false, message: 'Password too short'});
       return;
     }
     if (!/\d/.test(password)) {
-      setPasswordChecker("Password must include a digit");
+      setPasswordChecker({isValid: false, message: 'Password must include a digit'});
       return;
     }
     if (!/[a-zA-Z]/.test(password)) {
-      setPasswordChecker("Password must include a letter");
+      setPasswordChecker({isValid: false, message: 'Password must include a letter'});
       return;
     }
-    setPasswordChecker(null);
+    setPasswordChecker({isValid: true, message: ''});
   }, [password]);
 
   useEffect(() => {
     if (!password2) {
-      setPassword2Checker(null);
+      setPassword2Checker({isValid: null, message: ''});
       return;
     }
     if (password2 !== password) {
-      setPassword2Checker("Password does not match");
+      setPassword2Checker({isValid: false, message: 'Passwords do not match'});
       return;
     }
-    setPassword2Checker(null);
+    setPassword2Checker({isValid: true, message: ''});
   }, [password2]);
 
   const submitForm = (e) => {
@@ -101,104 +109,100 @@ export default function Signup() {
       });
   };
 
+  console.log(usernameChecker, emailChecker, passwordChecker, password2Checker);
+
   return (
     <AuthTemplate>
       <form
         onSubmit={(e) => submitForm(e)}
-        className="px-6 md:px-8 grid grid-rows-layout3"
+        className="px-6 py-4 md:px-8 grid grid-rows-layout3"
       >
         <div className="flex flex-col justify-evenly">
           <div className="py-1 flex flex-col items-start">
             <label className="relative w-full" htmlFor="signup-username">
-              <span className="text-lg md:text-lg mb-1">Username</span>
-
+              <span className="mb-1">Username</span>
               <input
                 id="signup-username"
-                className="border border-orange-500 rounded-sm focus:outline-2 focus:outline-orange-500 p-1 w-full"
+                className="border border-color1-dark rounded-sm focus:outline-2 focus:outline-color1-dark p-1 w-full"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
-              {usernameChecker && (
-                <div className="absolute -bottom-6 text-sm md:text-md font-semibold left-0 text-red-700">
-                  !{` ${usernameChecker}`}
-                </div>
-              )}
+              <div className="h-4 text-sm md:text-md font-semibold left-0 text-red-700">
+                {usernameChecker.message || ""}
+              </div>
             </label>
           </div>
           <div className="py-1 flex flex-col items-start">
             <label className="relative w-full" htmlFor="signup-email">
-              <span className="text-lg md:text-lg mb-1">Email</span>
+              <span className="mb-1">Email</span>
               <input
                 id="signup-email"
-                className="border border-orange-500 rounded-sm focus:outline-2 focus:outline-orange-500 p-1 w-full"
+                className="border border-color1-dark rounded-sm focus:outline-2 focus:outline-color1-dark p-1 w-full"
                 type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              {emailChecker && (
-                <div className="absolute -bottom-6 text-sm md:text-md font-semibold left-0 text-red-700">
-                  !{` ${emailChecker}`}
-                </div>
-              )}
+              <div className="h-4 min-w-1 text-sm md:text-md font-semibold left-0 text-red-700">
+                {emailChecker.message || " "}
+              </div>
             </label>
           </div>
           <div className="py-1 flex flex-col items-start">
             <label className="relative w-full" htmlFor="signup-password">
-              <span className="text-lg md:text-lg mb-1">Password</span>
+              <span className="mb-1">Password</span>
               <input
                 id="signup-password"
-                className="border border-orange-500 rounded-sm focus:outline-2 focus:outline-orange-500 p-1 w-full"
+                className="border border-color1-dark rounded-sm focus:outline-2 focus:outline-color1-dark p-1 w-full"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
               <span
+                tabIndex="0"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className=" absolute cursor-pointer top-8 right-2 text-orange-500 font-semibold"
+                onKeyDown={e => e.key === "Enter" && setShowPassword((prev) => !prev)}
+                className=" absolute cursor-pointer top-7 right-2 text-color1-dark font-semibold"
               >
                 {showPassword ? "hide" : "show"}
               </span>
-              {passwordChecker && (
-                <div className="absolute -bottom-6 text-sm md:text-md font-semibold left-0 text-red-700">
-                  !{` ${passwordChecker}`}
-                </div>
-              )}
+              <div className="h-4 min-w-1 text-sm md:text-md font-semibold left-0 text-red-700">
+                {passwordChecker.message || " "}
+              </div>
             </label>
           </div>
           <div className="py-1 flex flex-col items-start">
             <label className="relative w-full" htmlFor="confirm-password">
-              <span className="text-lg md:text-lg mb-1">Confirm Password</span>
+              <span className="mb-1">Confirm Password</span>
               <input
                 id="confirm-password"
-                className="border border-orange-500 rounded-sm focus:outline-2 focus:outline-orange-500 p-1 w-full"
+                className="border border-color1-dark rounded-sm focus:outline-2 focus:outline-color1-dark p-1 w-full"
                 type={showPassword2 ? "text" : "password"}
                 value={password2}
                 onChange={(e) => setPassword2(e.target.value)}
               />
               <span
+                tabIndex="0"
                 onClick={() => setShowPassword2((prev) => !prev)}
-                className=" absolute cursor-pointer top-8 right-2 text-orange-500 font-semibold"
+                onKeyDown={e => e.key === "Enter" && setShowPassword2((prev) => !prev)}
+                className=" absolute cursor-pointer top-7 right-2 text-color1-dark font-semibold"
               >
                 {showPassword2 ? "hide" : "show"}
               </span>
-              {password2Checker && (
-                <div className="absolute -bottom-6 text-sm md:text-md font-semibold left-0 text-red-700">
-                  !{` ${password2Checker}`}
-                </div>
-              )}
+              <div className="h-4 min-w-1 text-sm md:text-md font-semibold left-0 text-red-700">
+                {password2Checker.message || " "}
+              </div>
             </label>
           </div>
         </div>
         <button
           disabled={
-            !username ||
-            usernameChecker ||
-            emailChecker ||
-            passwordChecker ||
-            password2Checker
+            usernameChecker.isValid ||
+            emailChecker.isValid ||
+            passwordChecker.isValid ||
+            password2Checker.isValid
           }
-          className="mt-4 mb-6 bg-orange-500 text-white text-lg md:text-xl font-bold px-6 py-2 rounded-md disabled:bg-orange-300"
+          className="mt-4 mb-6 bg-color1 text-white text-lg md:text-xl font-semibold px-6 py-2 rounded-md disabled:bg-color1-lighter disabled:cursor-not-allowed"
         >
           Submit
         </button>

@@ -17,11 +17,18 @@ module.exports = {
 					"linear-gradient(180deg, #46D387 50.52%, rgba(70, 211, 152, 0.29) 100%)",
 			},
 			boxShadow: {
-				"inner-light": "inset 4px 6px 4px rgba(255, 255, 255, 0.19)",
+				"inner-light": "inset 5px 8px 4px rgba(255, 255, 255, 0.2)",
 			},
 			colors: {
 				"transparent-20": "rgba(255, 255, 255, 0.2)",
 				"transparent-50": "rgba(255, 255, 255, 0.5)",
+				"color1": "#00BC9B",
+				"color1-light": "#36d3b7",
+				"color1-lighter": "#9DF5DD",
+				"color1-dark": "#078770",
+				"color2": "#A228E9",
+				"color2-light": "#CB46FA",
+				"color2-lighter": "#DD7CFF",
 			},
 			screens: {
 				sm: "480px",
