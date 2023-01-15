@@ -1,117 +1,105 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from 'next/image'
-import chevronLeftIcon from "../assets/chevron-left.png";
-import chevronRightIcon from "../assets/chevron-right.png";
+import homeIcon from "../assets/home.svg";
+import chevronLeftIcon from "../assets/chevron-left.svg";
+import chevronRightIcon from "../assets/chevron-right.svg";
+import { Card, CardBody, CardHeader } from "../components/Card";
+import { ABOUT_TEXT } from "../utils/constants";
+import { useRouter } from "next/router";
+
+const getContent = (page) => {
+  const content = ABOUT_TEXT[page];
+  return (
+    <div key={`page${page}`} className="flex flex-col gap-2">
+      {content.map((item, index) => (
+        <>
+          <div key={item.title} className="my-2 grid grid-cols-1 lg:grid-cols-[1fr,_2fr] gap-1">
+            <div>
+              <h2 className="text-lg">{item.title}</h2>
+              {page == 1 && <h3 className="text-neutral-500">{item.subtitle}</h3>}
+            </div>
+            <div>
+              <p>{item.text}</p>
+            </div>
+          </div>
+          {index !== content.length - 1 && <hr />}
+        </>
+      ))}
+    </div>
+  )
+};
 
 export default function About () {
   const [page, setPage] = useState(0);
 
-  const getContent = () => {
-    if (page === 0) {
-      return (
-        <>
-          <p className="pt-2">
-            Lingpal is multiplayer game where you can practice your target
-            language in a fun and interactive way.
-          </p>
-          <p className="pt-2">
-            A game can start with 2-4 players. When there are fewer than 4
-            players, all players need to be ready before the game can start. A
-            player can leave at any point of the game without interrupting the
-            rest of the players. However, if there is only one player left, the
-            game ends. Players who leave a game will only have their game count
-            increased.
-          </p>
-          <p className="pt-2">
-            A game has 2 rounds. Each round begins by giving each player their
-            secret word and some time to take notes. The notes will be
-            accessible to them later in the game. The player who first gets the
-            secret word wins the turn and gets 2 points. The describer also gets
-            one point. A turn ends when a player gets the correct word or when
-            it times out. In the latter case, no player earns any points.
-          </p>
-        </>
-      );
-    } else {
-      return (
-        <>
-          <p>There are a few settings to choose from:</p>
-          <ul className="list-disc pt-2">
-            <li className="ml-5">
-              Mode: How competitive the game is. In the standard mode, players
-              are not asked to rate the description and the players&apo;s statistics
-              are updated after each game. In the relaxed more, a turn may last
-              longer and the description will be rated, but neither the rating
-              nor the score will affect the players&apo;s statistics.
-            </li>
-            <li className="ml-5">
-              Level: How hard the words are. The easy level has more concrete
-              objects that are straight-forward to describe, while words in the
-              hard mode can be more abstract and therefore requires more
-              thoughtful descriptions.
-            </li>
-            <li className="ml-5">
-              Describer: How is a word described. Text means that the describer
-              uses the chat box to send the description. Voice means that the
-              describer speaks to other players in real time. All other players
-              always use the chatbox.
-            </li>
-          </ul>
-        </>
-      );
-    }
+  const Router = useRouter();
+  const navigate = Router.push;
+
+  const goToPrevPage = () => {
+    if (page === 1) setPage(0);
+    else navigate("/dashboard");
+  };
+
+  const goToNextPage = () => {
+    if (page === 0) setPage(1);
+    else navigate("/dashboard");
   };
 
   return (
-    <div className="text-orange-800 sm:text-lg lg:text-md light-yellow min-h-screen">
-      <div className="h-screen w-5/6 md:w-2/3 max-w-4xl mx-auto py-4 relative">
-        <Link className="absolute left-0 top-4" href="/dashboard">
-          Back
+    <div className="cyan-gradient md:h-screen overflow-hidden flex flex-col">
+      <Link href="/dashboard" className="ml-4 mt-4 md:ml-8 py-1 px-6 flex items-center gap-2 cursor-pointer bg-color1-lighter shadow-inner-light rounded-full text-neutral-700 self-start">
+        <p>Home</p>
+        <Image
+          className="w-5 h-5"
+          src={homeIcon}
+          alt="home"
+          width={24}
+          height={24}
+        />
         </Link>
-        <h1 className="text-xl md:text-3xl text-center font-bold my-4 sm:my-6 text-orange-700">
-          About Lingpal
-        </h1>
-        {getContent()}
-        <div className="absolute bottom-0 my-4 md:my-8 w-full flex justify-between md:justify-evenly items-center">
-          <div
-            className={`flex items-center cursor-pointer ${
-              page === 1 ? "visible" : "invisible"
-            }`}
-            onClick={() => setPage(0)}
-          >
-            <div className="h-6 w-6 rounded-full bg-transparent-50 flex justify-center items-center">
-              <Image
-                src={chevronLeftIcon}
-                alt="Previous"
-                width={24}
-                height={24}
-              />
-            </div>
-            <p className="pl-1 text-lg md:text-xl font-semibold">General</p>
+      <Card className="w-11/12 max-w-4xl mx-auto my-4">
+        <CardHeader className='py-2'>
+          <h1 className="text-lg md:text-xl text-center font-semibold text-white">
+            {page === 0 ? "How to play" : "Settings"}
+          </h1>
+        </CardHeader>
+        <CardBody className='px-4 md:px-6 py-4'>
+          {getContent(page)}
+          <div className="w-full mt-4 flex justify-between md:justify-evenly items-center">
+            <button
+              className='flex items-center gap-1 cursor-pointer'
+              onClick={goToPrevPage}
+            >
+              <div className="h-6 w-6 rounded-full bg-color1-lighter flex justify-center items-center">
+                <Image
+                  className="w-4"
+                  src={chevronLeftIcon}
+                  alt="Previous"
+                  width={24}
+                  height={24}
+                />
+              </div>
+              <p className="pl-1 text-lg text-neutral-500">{page === 0 ? "Back" : "General"}</p>
+            </button>
+            <button
+              className={'flex items-center gap-1 cursor-pointer'}
+              onClick={goToNextPage}
+            >
+              <p className="pr-1 text-lg text-neutral-500">{page === 0? "Settings" : "Done"}</p>
+              <div className="h-6 w-6 rounded-full bg-color1-lighter flex justify-center items-center">
+                <Image
+                  className="w-4"
+                  src={chevronRightIcon}
+                  alt="Previous"
+                  width={24}
+                  height={24}
+                />
+              </div>
+            </button>
           </div>
-          <p className="text-lg md:text-xl">
-            Page <span className="font-semibold">{page + 1}</span> of{" "}
-            <span className="font-semibold">2</span>
-          </p>
-          <div
-            className={`flex items-center cursor-pointer ${
-              page === 0 ? "visible" : "invisible"
-            }`}
-            onClick={() => setPage(1)}
-          >
-            <p className="pr-1 text-lg md:text-xl font-semibold">Settings</p>
-            <div className="h-6 w-6 rounded-full bg-transparent-50 flex justify-center items-center">
-              <Image
-                src={chevronRightIcon}
-                alt="Previous"
-                width={24}
-                height={24}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+        </CardBody>
+      </Card>
     </div>
   );
 };

@@ -2,8 +2,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useSettingContext } from "../utils/contexts/SettingContext";
 import Image from 'next/image'
-import keyboardIcon from "../assets/keyboard.png";
-import microphoneIcon from "../assets/microphone.png";
+import keyboardIcon from "../assets/keyboard.svg";
+import microphoneIcon from "../assets/microphone.svg";
 
 const BackgroundTemplate = ({ children, animateText, animateVoice }) => {
 	const {

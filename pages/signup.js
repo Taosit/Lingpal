@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import AuthTemplate from "../components/AuthTemplate";
 import { useAuthContext } from "../utils/contexts/AuthContext";
+import NextImage from 'next/image'
+import loader from "../assets/small-loader.png";
 
 export default function Signup() {
   const [username, setUsername] = useState("");
@@ -14,6 +16,7 @@ export default function Signup() {
   const [emailChecker, setEmailChecker] = useState({isValid: null, message: ''});
   const [passwordChecker, setPasswordChecker] = useState({isValid: null, message: ''});
   const [password2Checker, setPassword2Checker] = useState({isValid: null, message: ''});
+  const [loading, setLoading] = useState(false);
 
   const { setUser, setAccessToken } = useAuthContext();
 
@@ -79,6 +82,7 @@ export default function Signup() {
 
   const submitForm = (e) => {
     e.preventDefault();
+    setLoading(true);
     const body = JSON.stringify({ username, email, password });
     fetch("/api/signup", {
       method: "POST",
@@ -102,6 +106,7 @@ export default function Signup() {
       .then((data) => {
         setUser(data.user);
         setAccessToken(data.accessToken);
+        setLoading(false)
         navigate("/dashboard");
       })
       .catch((e) => {
@@ -204,7 +209,17 @@ export default function Signup() {
           }
           className="mt-4 mb-6 bg-color1 text-white text-lg md:text-xl font-semibold px-6 py-2 rounded-md disabled:bg-color1-lighter disabled:cursor-not-allowed"
         >
-          Submit
+          {loading ? (
+            <NextImage
+            className=''
+            src={loader}
+            alt="loader"
+            width={24}
+            height={24}
+          />
+          ) : (
+            "Sign Up"
+          )}
         </button>
       </form>
     </AuthTemplate>

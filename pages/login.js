@@ -2,12 +2,15 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import AuthTemplate from "../components/AuthTemplate";
 import { useAuthContext } from "../utils/contexts/AuthContext";
+import NextImage from 'next/image'
+import loader from "../assets/small-loader.png";
 
 export default function Login() {
   const [email, setEmail] = useState("test@test.com");
   const [password, setPassword] = useState("test123");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const { setUser, setAccessToken } = useAuthContext();
 
@@ -20,6 +23,7 @@ export default function Login() {
 
   const submitForm = (e) => {
     e.preventDefault();
+    setLoading(true);
     const body = JSON.stringify({ email, password });
     fetch("/api/login", {
       method: "POST",
@@ -47,6 +51,9 @@ export default function Login() {
       .catch((e) => {
         console.log(e.message);
         setError(e.message);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -97,9 +104,19 @@ export default function Login() {
         </div>
         <button
           disabled={!email || !password || error}
-          className="mt-4 mb-6 bg-color1 text-white text-lg md:text-xl font-semibold px-6 py-2 rounded-md disabled:bg-color1-lighter disabled:cursor-not-allowed"
+          className="mt-4 mb-6 bg-color1 text-white text-lg md:text-xl font-semibold px-6 py-2 rounded-md disabled:bg-color1-lighter disabled:cursor-not-allowed flex justify-center items-center"
         >
-          Submit
+          {loading ? (
+            <NextImage
+            className=''
+            src={loader}
+            alt="loader"
+            width={24}
+            height={24}
+          />
+          ) : (
+            "Log In"
+          )}
         </button>
       </form>
     </AuthTemplate>

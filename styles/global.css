@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-	--big-star-color: rgba(255, 239, 95, 0.4);
+	--big-star-color: rgba(212, 255, 70, 0.45);
 	--small-star-color: rgba(198, 255, 126, 0.5);
 	--star-ratio: 50%;
 	--color1: #00BC9B;
@@ -13,6 +13,7 @@
 	--color2: #A228E9;
 	--color2-light: #CB46FA;
 	--color2-lighter: #DD7CFF;
+	--color2-dark: #850FAF;
 }
 
 * {
@@ -290,48 +291,22 @@ html {
 	}
 }
 
-.dashboard-title {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	font-size: 3em;
-	font-weight: 600;
-	color: rgb(194 65 12);
-}
-
-.dashboard-title::before {
-	content: attr(data-text);
-	position: absolute;
-	top: 0;
-	left: 0;
-	transform: rotateX(180deg) skewX(60deg) scaleY(0.5) translateX(4px);
-	transform-origin: bottom;
-	line-height: 1.2em;
-	background: linear-gradient(
-		0deg,
-		rgba(194 65 12 0.8) 0%,
-		rgba(194 65 12 0.4) 80%
-	);
-	/* -webkit-background-clip: text; */
-	color: transparent;
-}
-
 .play-button {
 	margin: 0 auto;
 	background-image: linear-gradient(
 		90deg,
-		black 0%,
-		rgb(90, 0, 0) 33.33%,
-		black 66.67%,
-		rgb(90, 0, 0) 100%
+		var(--color2) 0%,
+		var(--color2-dark) 25%,
+		var(--color2),
+		var(--color2-dark) 75%,
+		var(--color2)
 	);
-	background-size: 300% 100%;
-	animation: wave 2s infinite;
+	background-size: 200% 100%;
+	animation: wave 3s infinite linear;
 	color: white;
 	font-size: 1.5em;
-	padding: 4px 36px;
-	border-radius: 2em;
+	padding: 4px 2em;
+	border-radius: 0.5em;
 	cursor: pointer;
 	transition: 0.2s;
 }
@@ -353,9 +328,9 @@ html {
 .gradient-background {
 	background-image: linear-gradient(
 		180deg,
-		#d37146 20%,
-		rgba(160, 160, 0, 0.507) 50%,
-		#0c910094 80%
+		var(--color1-light) 20%,
+		#8690D9 50%,
+		var(--color2-light) 80%
 	);
 	background-size: 100% 200%;
 	background-position: 50%;
@@ -551,7 +526,7 @@ html {
 
 .img-container img {
 	max-width: 70%;
-	filter: blur(1px);
+	opacity: 0.6;
 }
 
 .option-light {

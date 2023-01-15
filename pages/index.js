@@ -2,7 +2,7 @@ import React from "react";
 import { useRouter } from "next/router";
 import Image from 'next/image'
 import lingpalIcon from "../assets/logo.svg";
-import coverImage from "../assets/coverImage.png";
+import coverImage from "../assets/cover-image.png";
 import starImage from "../assets/star.svg";
 import arrowImage from "../assets/up-arrows.svg";
 import conversationImage from "../assets/conversation.svg";

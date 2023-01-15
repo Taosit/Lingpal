@@ -12,7 +12,7 @@ import pencilIcon from "../assets/pencil.svg";
 import gamelIcon from "../assets/game.svg";
 import badgeIcon from "../assets/badge.svg";
 import gearsIcon from "../assets/gears.svg";
-import infoIcon from "../assets/info.png";
+import infoIcon from "../assets/about.svg";
 import { useGameContext } from "../utils/contexts/GameContext";
 import { Card, CardBody, CardHeader } from "../components/Card";
 
@@ -91,32 +91,33 @@ export default function Dashboard(){
 
   return (
     <div className="cyan-gradient h-screen overflow-hidden">
-      <div className="relative top-0 z-10 w-full flex justify-start">
-        <div className="flex items-center m-2 sm:ml-8 sm:mt-4">
+      <div className="relative top-0 z-10 w-full flex justify-between items-end">
+        <Link href="/" className="flex items-center m-2 sm:ml-8 sm:mt-4">
           <div className="w-12">
-          <NextImage
-            src={lingpalIcon}
-            alt="Logo"
-            width={50}
-            height={50}
-          />
+            <NextImage
+              src={lingpalIcon}
+              alt="Logo"
+              width={50}
+              height={50}
+            />
           </div>
           <p className="pl-2 font-bold sm:text-xl md:text-2xl md:pl-4">
             Lingpal
           </p>
-        </div>
-      </div>
-      <div className="w-full mx-auto relative flex flex-col items-center">
-        <Link href="/about" className="absolute right-0 top-0 flex items-center cursor-pointer">
+        </Link>
+        <Link href="/about" className="sm:mr-8 py-1 px-6 flex items-center gap-2 cursor-pointer bg-color1-lighter shadow-inner-light rounded-full text-neutral-700">
+          <p>About</p>
           <NextImage
+            className="w-5 h-5"
             src={infoIcon}
             alt="about the game"
             width={24}
             height={24}
           />
-          <h5 className="text-orange-400 ml-1 font-semibold">About</h5>
         </Link>
-        <Card className="w-96 max-w-[90%]">
+      </div>
+      <div className="w-96 max-w-[90%] mx-auto flex flex-col">
+        <Card className="mt-8">
           <CardHeader className='flex justify-end pt-6 px-6 pb-1'>
             <label 
             className="cursor-pointer absolute left-12 bottom-2 h-8 w-20 p-1 rounded bg-[#D9D9D9B0] flex justify-end items-center">
@@ -150,9 +151,9 @@ export default function Dashboard(){
               />
             </div>
           </CardHeader>
-          <CardBody className='px-6 py-8'>
+          <CardBody className='px-6 py-4'>
             <div className="flex flex-col">
-              <div className="my-4 md:text-lg flex justify-between">
+              <div className="my-6 md:text-lg flex justify-between">
                 <span className="flex gap-2">
                   <NextImage
                     src={gamelIcon}
@@ -165,7 +166,7 @@ export default function Dashboard(){
                 <span className="">{user.total}</span>
               </div>
               <hr/>
-              <div className="my-4 md:text-lg flex justify-between">
+              <div className="my-6 md:text-lg flex justify-between">
                 <span className="flex gap-2">
                   <NextImage
                     src={badgeIcon}
@@ -178,7 +179,7 @@ export default function Dashboard(){
                 <span className="">{win}%</span>
               </div>
               <hr/>
-              <div className="my-4 md:text-lg flex justify-between">
+              <div className="my-6 md:text-lg flex justify-between">
                 <span className="flex gap-2">
                   <NextImage
                     src={gearsIcon}
@@ -193,19 +194,17 @@ export default function Dashboard(){
             </div>
           </CardBody>
         </Card>
-        <div className="w-full flex justify-end">
+        <div className="self-end">
           <button
             onClick={logout}
-            className="mt-2 cursor-pointer text-red-700 font-semibold"
+            className="mt-2 cursor-pointer text-color1-dark font-semibold"
           >
             Logout
           </button>
         </div>
-        <div className="w-full pb-8 flex flex-col">
-          <button className="play-button self-center" onClick={play}>
-            Play
-          </button>
-        </div>
+        <button className="play-button self-center" onClick={play}>
+          Play
+        </button>
       </div>
     </div>
   );

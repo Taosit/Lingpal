@@ -1,6 +1,7 @@
 import React from "react";
 import { useRouter } from 'next/router';
 import Image from 'next/image'
+import Link from "next/link";
 import lingpalIcon from "../assets/logo.svg";
 import girlImage from "../assets/girl.png";
 import {Card, CardBody, CardHeader} from "./Card";
@@ -18,8 +19,7 @@ const AuthTemplate = ({ children }) => {
 
 	return (
 		<div className="cyan-gradient flex flex-col h-screen relative">
-			<div 
-			onClick={() => navigate("/")}
+			<Link href="/"
 			className="cursor-pointer flex items-center p-2 sm:py-4 absolute">
 				<Image
 					className="w-12 md:w-20"
@@ -31,7 +31,7 @@ const AuthTemplate = ({ children }) => {
 				<p className="pl-2 font-bold sm:text-xl md:text-2xl md:pl-4">
 					Lingpal
 				</p>
-			</div>
+			</Link>
 			<div className="flex grow justify-center items-center">
 				<Card className='w-96 max-w-[90%]'>
 					<CardHeader className='flex gap-4 text-xl pt-4 pb-1 px-6 md:px-8'>

@@ -6,16 +6,6 @@ module.exports = {
   ],
 	theme: {
 		extend: {
-			backgroundImage: {
-				"bi-color-gradient":
-					"linear-gradient(180deg, #D37146 20.31%, rgba(255, 255, 255, 0.59375) 60.55%, rgba(0, 92, 145, 0.58) 100%)",
-				"yellow-gradient":
-					"linear-gradient(90deg, #FDFFEA 0%, rgba(252, 254, 192, 0.7703) 50.52%, rgba(254, 192, 119, 0.44) 100%)",
-				"orange-gradient":
-					"linear-gradient(180deg, #D37146 50.52%, rgba(211, 113, 70, 0.42) 100%)",
-				"green-gradient":
-					"linear-gradient(180deg, #46D387 50.52%, rgba(70, 211, 152, 0.29) 100%)",
-			},
 			boxShadow: {
 				"inner-light": "inset 5px 8px 4px rgba(255, 255, 255, 0.2)",
 			},
@@ -26,6 +16,7 @@ module.exports = {
 				"color1-light": "#36d3b7",
 				"color1-lighter": "#9DF5DD",
 				"color1-dark": "#078770",
+				"color1-variant": "#BCFFDF",
 				"color2": "#A228E9",
 				"color2-light": "#CB46FA",
 				"color2-lighter": "#DD7CFF",
