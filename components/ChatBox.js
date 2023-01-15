@@ -24,6 +24,7 @@ const ChatBox = ({
 
   const windowSize = useWindowSize();
   const lastMessageRef = useRef();
+  const messageLength = useRef(0);
 
   useEffect(() => {
     socket.on("rating-update", (averageRating) => {
@@ -72,8 +73,13 @@ const ChatBox = ({
 
   useEffect(() => {
     if (!lastMessageRef.current) return;
-    lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (messageLength.current === messages.length) {
+      lastMessageRef.current.scrollIntoView();
+    } else {
+      messageLength.current = messages.length;
+      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [lastMessageRef.current]);
 
   return (
     <div

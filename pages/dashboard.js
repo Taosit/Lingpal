@@ -134,13 +134,15 @@ export default function Dashboard(){
                 className="hidden"
               />
             </label>
-            <CldImage
-              className="absolute left-4 bottom-2 w-20 rounded-full object-contain object-center"
-              width="100"
-              height="100" 
-              src={user.avatar}
-              alt="user avatar"
-            />
+            <div className="absolute w-20 h-20 left-4 bottom-2">
+              <CldImage
+                className="w-20 h-20 rounded-full object-cover object-center"
+                width="100"
+                height="100" 
+                src={user.avatar}
+                alt="user avatar"
+              />
+            </div>
             <div className="relative mb-1 text-lg text-semibold rounded bg-[#D9D9D9B0] h-8 px-2 py-1 text-color1-dark flex gap-2">
               <p>{user.username}</p>
               <NextImage

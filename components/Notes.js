@@ -1,4 +1,3 @@
-import React from "react";
 
 const Notes = ({ word, notes, setDisplay, setInputText }) => {
 	const capitalize = word => {
