@@ -37,8 +37,6 @@ const PrivateRoute = ({children}) => {
     }
   }, [loading, user])
 
-  if (!user) return null;
-
 	return <>{children}</>;
 };
 

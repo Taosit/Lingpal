@@ -17,15 +17,13 @@ import { useGameContext } from "../utils/contexts/GameContext";
 import { Card, CardBody, CardHeader } from "../components/Card";
 
 export default function Dashboard(){
-  const { loading, setPlayers, setInGame, setRoomId, setRound, setDescriberIndex } =
+  const { setPlayers, setInGame, setRoomId, setRound, setDescriberIndex } =
     useGameContext();
-  const { user, setUser} = useAuthContext();
+  const { loading, user, setUser} = useAuthContext();
   const authAxios = useAuthAxios();
 
-  const win = !user.total ? 0 : ((user.win * 100) / user.total).toFixed(1);
-  const hardPlayer = !user.total
-    ? 0
-    : ((user.advanced * 100) / user.total).toFixed(1);
+  const win = user?.total ? ((user.win * 100) / user.total).toFixed(1) : 0;
+  const hardPlayer = user?.total? ((user.advanced * 100) / user.total).toFixed(1) : 0;
 
   const compress = (file, options) => {
     return new Promise((resolve, reject) => {
