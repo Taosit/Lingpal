@@ -17,7 +17,7 @@ import { useGameContext } from "../utils/contexts/GameContext";
 import { Card, CardBody, CardHeader } from "../components/Card";
 
 export default function Dashboard(){
-  const { setPlayers, setInGame, setRoomId, setRound, setDescriberIndex } =
+  const { loading, setPlayers, setInGame, setRoomId, setRound, setDescriberIndex } =
     useGameContext();
   const { user, setUser} = useAuthContext();
   const authAxios = useAuthAxios();
@@ -139,12 +139,12 @@ export default function Dashboard(){
                 className="w-20 h-20 rounded-full object-cover object-center"
                 width="100"
                 height="100" 
-                src={user.avatar}
+                src={loading? "nruwutqaihxyl7sq6ilm" : user.avatar}
                 alt="user avatar"
               />
             </div>
             <div className="relative mb-1 text-lg text-semibold rounded bg-[#D9D9D9B0] h-8 px-2 py-1 text-color1-dark flex gap-2">
-              <p>{user.username}</p>
+              <p>{loading? "" : user.username}</p>
               <NextImage
                 src={pencilIcon}
                 alt="pencil"
@@ -165,7 +165,7 @@ export default function Dashboard(){
                   />
                   <p>Total</p>
                 </span>
-                <span className="">{user.total}</span>
+                <span className="">{loading? 0 : user.total}</span>
               </div>
               <hr/>
               <div className="my-6 md:text-lg flex justify-between">
@@ -178,7 +178,7 @@ export default function Dashboard(){
                   />
                   <p>Win</p>
                 </span>
-                <span className="">{win}%</span>
+                <span className="">{loading? 0 : win}%</span>
               </div>
               <hr/>
               <div className="my-6 md:text-lg flex justify-between">
@@ -191,7 +191,7 @@ export default function Dashboard(){
                   />
                   <p>Hard</p>
                 </span>
-                <span className="">{hardPlayer}%</span>
+                <span className="">{loading? 0 : hardPlayer}%</span>
               </div>
             </div>
           </CardBody>

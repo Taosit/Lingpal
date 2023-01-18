@@ -7,13 +7,14 @@ const useAuthContext = () => {
 };
 
 const AuthContextProvider = ({ children }) => {
+	const [loading, setLoading] = useState(true);
 	const [user, setUser] = useState(null);
 	const [accessToken, setAccessToken] = useState("");
 
 
 	return (
 		<AuthContext.Provider
-			value={{ user, setUser, accessToken, setAccessToken}}
+			value={{ loading, setLoading, user, setUser, accessToken, setAccessToken}}
 		>
 			{children}
 		</AuthContext.Provider>
