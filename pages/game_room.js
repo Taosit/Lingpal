@@ -32,13 +32,24 @@ export default function GameRoom() {
   } = useGameContext();
 
   const { socket } = useSocketContext();
-  const { user, setUser } = useAuthContext();
+  const { loading, user, setUser } = useAuthContext();
   const {
     settings: { mode, level, describer: describerInput },
   } = useSettingContext();
 
+  const router = useRouter()
+	const navigate = router.push;
+
   const TURN_TIME =
     mode === "standard" ? TURN_TIME_STANDARD : TURN_TIME_RELAXED;
+
+  const [inputText, setInputText] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [display, setDisplay] = useState("chatbox");
+  const [time, setTime] = useState(TURN_TIME);
+  const [oldRound, setOldRound] = useState(false);
+  const [showFeedbackField, setShowFeedbackField] = useState(false);
+
   const windowSize = useWindowSize();
   const authAxios = useAuthAxios();
 
@@ -55,77 +66,6 @@ export default function GameRoom() {
     }
     setPlayerLeftNoteRoom([]);
   }, []);
-
-  const describer = playerArray.find((p) => p.order === describerIndex);
-  let { words, notes } = players[describer._id];
-
-  const router = useRouter()
-	const navigate = router.push;
-
-  const [inputText, setInputText] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [display, setDisplay] = useState("chatbox");
-  const [time, setTime] = useState(TURN_TIME);
-  const [oldRound, setOldRound] = useState(false);
-  const [showFeedbackField, setShowFeedbackField] = useState(false);
-
-  const userIsDescriber = () => {
-    return describer._id === user._id && !oldRound;
-  };
-
-  const isUserFirstPlayer = () => {
-    return playerArray.every((p) => players[user._id].order <= p.order);
-  };
-
-  const isLastPlayerDescribing = () => {
-    return playerArray.every((p) => describer.order >= p.order);
-  };
-
-  const isFirstPlayerDescribing = () => {
-    return playerArray.every((p) => describer.order <= p.order);
-  };
-
-  const formatTime = (time) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = time % 60;
-    return `${minutes}:${seconds}`;
-  };
-
-  const sendBotMessage = (text) => {
-    const message = {
-      sender: null,
-      isBot: true,
-      isDescriber: null,
-      text,
-    };
-    setMessages((prev) => [...prev, message]);
-  };
-
-  const askForFeedback = () => {
-    return new Promise((resolve, reject) => {
-      setShowFeedbackField(true);
-      setTimeout(() => {
-        if (userIsDescriber()) {
-          socket.emit("clear-ratings", roomId);
-        }
-        resolve();
-      }, FEEDBACK_TIME * 1000);
-    });
-  };
-
-  const endTurn = async () => {
-    setDisplay("chatbox");
-    if (mode === "relaxed") {
-      await askForFeedback();
-    }
-
-    setShowFeedbackField(false);
-    console.log(players[user._id].order, "should emit update-turn");
-    if (isUserFirstPlayer()) {
-      console.log("emit update-turn");
-      socket.emit("update-turn", { roomId });
-    }
-  };
 
   useEffect(() => {
     socket.on("update-time", (time) => {
@@ -309,6 +249,69 @@ export default function GameRoom() {
 
     setTimeout(() => endTurn(), isLastPlayerDescribing() ? 3000 : 1000);
   }, [time]);
+
+  if (loading) return <div>Loading</div>;
+
+  const describer = playerArray.find((p) => p.order === describerIndex);
+  let { words, notes } = players[describer._id];
+
+  const userIsDescriber = () => {
+    return describer._id === user._id && !oldRound;
+  };
+
+  const isUserFirstPlayer = () => {
+    return playerArray.every((p) => players[user._id].order <= p.order);
+  };
+
+  const isLastPlayerDescribing = () => {
+    return playerArray.every((p) => describer.order >= p.order);
+  };
+
+  const isFirstPlayerDescribing = () => {
+    return playerArray.every((p) => describer.order <= p.order);
+  };
+
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${minutes}:${seconds}`;
+  };
+
+  const sendBotMessage = (text) => {
+    const message = {
+      sender: null,
+      isBot: true,
+      isDescriber: null,
+      text,
+    };
+    setMessages((prev) => [...prev, message]);
+  };
+
+  const askForFeedback = () => {
+    return new Promise((resolve, reject) => {
+      setShowFeedbackField(true);
+      setTimeout(() => {
+        if (userIsDescriber()) {
+          socket.emit("clear-ratings", roomId);
+        }
+        resolve();
+      }, FEEDBACK_TIME * 1000);
+    });
+  };
+
+  const endTurn = async () => {
+    setDisplay("chatbox");
+    if (mode === "relaxed") {
+      await askForFeedback();
+    }
+
+    setShowFeedbackField(false);
+    console.log(players[user._id].order, "should emit update-turn");
+    if (isUserFirstPlayer()) {
+      console.log("emit update-turn");
+      socket.emit("update-turn", { roomId });
+    }
+  };
 
   const leaveGame = () => {
     socket.disconnect();
