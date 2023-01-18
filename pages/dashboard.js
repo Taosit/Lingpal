@@ -23,7 +23,7 @@ export default function Dashboard(){
   const { loading, user, setUser} = useAuthContext();
   const authAxios = useAuthAxios();
 
-  const [username, setUsername] = useState(user.username || "");
+  const [username, setUsername] = useState(user?.username || "");
   const [edittingName, setEdittingName] = useState(false);
   const [error, setError] = useState({hasError: false, message: ""});
 
@@ -56,7 +56,7 @@ export default function Dashboard(){
       showErrorMessage("Username must be at most 10 characters");
       return;
     }
-    if (name === user.username) {
+    if (name === user?.username) {
       setEdittingName(false);
       return;
     }
