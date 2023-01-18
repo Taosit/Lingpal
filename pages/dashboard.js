@@ -171,7 +171,7 @@ export default function Dashboard(){
                 className="w-20 h-20 rounded-full object-cover object-center"
                 width="100"
                 height="100" 
-                src={loading? "nruwutqaihxyl7sq6ilm" : user.avatar}
+                src={loading || !user? "nruwutqaihxyl7sq6ilm" : user.avatar}
                 alt="user avatar"
               />
             </div>
@@ -193,7 +193,7 @@ export default function Dashboard(){
               </div>
             ) : (
               <div className="relative mb-1 text-lg text-semibold rounded bg-[#D9D9D9B0] h-8 px-2 py-1 text-color1-dark flex gap-2">
-              <p>{loading? "" : user.username}</p>
+              <p>{loading || !user? "" : user.username}</p>
               <label id="change-name" className="hidden">Edit</label>
               <NextImage
                 onClick={() => setEdittingName(true)}
@@ -221,7 +221,7 @@ export default function Dashboard(){
                   />
                   <p>Total</p>
                 </span>
-                <span className="">{loading? 0 : user.total}</span>
+                <span className="">{loading || !user? 0 : user.total}</span>
               </div>
               <hr/>
               <div className="my-6 md:text-lg flex justify-between">
@@ -234,7 +234,7 @@ export default function Dashboard(){
                   />
                   <p>Win</p>
                 </span>
-                <span className="">{loading? 0 : win}%</span>
+                <span className="">{loading || !user? 0 : win}%</span>
               </div>
               <hr/>
               <div className="my-6 md:text-lg flex justify-between">
@@ -247,7 +247,7 @@ export default function Dashboard(){
                   />
                   <p>Hard</p>
                 </span>
-                <span className="">{loading? 0 : hardPlayer}%</span>
+                <span className="">{loading || !user? 0 : hardPlayer}%</span>
               </div>
             </div>
           </CardBody>

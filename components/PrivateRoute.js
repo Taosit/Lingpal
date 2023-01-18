@@ -31,6 +31,10 @@ const PrivateRoute = ({children}) => {
 	}, []);
 
 	useEffect(() => {
+		console.log({user, loading})
+		if (user === null) {
+      router.push("/login")
+    }
     if (loading) return;
     if (!user) {
       router.push("/login")
