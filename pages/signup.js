@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import AuthTemplate from "../components/AuthTemplate";
 import { useAuthContext } from "../utils/contexts/AuthContext";
-import NextImage from 'next/image'
+import NextImage from "next/image";
 import loader from "../assets/small-loader.png";
 
 export default function Signup() {
@@ -12,72 +12,93 @@ export default function Signup() {
   const [password2, setPassword2] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
-  const [usernameChecker, setUsernameChecker] = useState({isValid: null, message: ''});
-  const [emailChecker, setEmailChecker] = useState({isValid: null, message: ''});
-  const [passwordChecker, setPasswordChecker] = useState({isValid: null, message: ''});
-  const [password2Checker, setPassword2Checker] = useState({isValid: null, message: ''});
+  const [usernameChecker, setUsernameChecker] = useState({
+    isValid: null,
+    message: "",
+  });
+  const [emailChecker, setEmailChecker] = useState({
+    isValid: null,
+    message: "",
+  });
+  const [passwordChecker, setPasswordChecker] = useState({
+    isValid: null,
+    message: "",
+  });
+  const [password2Checker, setPassword2Checker] = useState({
+    isValid: null,
+    message: "",
+  });
   const [loading, setLoading] = useState(false);
 
   const { setUser, setAccessToken } = useAuthContext();
 
-  const router = useRouter()
-	const navigate = router.push;
+  const router = useRouter();
+  const navigate = router.push;
 
   useEffect(() => {
     if (!username) {
-      setUsernameChecker({isValid: null, message: ''});
+      setUsernameChecker({ isValid: null, message: "" });
       return;
     }
     if (username.length < 3) {
-      setUsernameChecker({isValid: false, message: 'Username too short'});
+      setUsernameChecker({ isValid: false, message: "Username too short" });
       return;
     }
-    setUsernameChecker({isValid: true, message: ''});
+    setUsernameChecker({ isValid: true, message: "" });
   }, [username]);
 
   useEffect(() => {
     if (!email) {
-      setEmailChecker({isValid: null, message: ''});
+      setEmailChecker({ isValid: null, message: "" });
       return;
     }
     const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     if (!regex.test(email)) {
-      setEmailChecker({isValid: false, message: 'Invalid email'});
+      setEmailChecker({ isValid: false, message: "Invalid email" });
       return;
     }
-    setEmailChecker({isValid: true, message: ''});
+    setEmailChecker({ isValid: true, message: "" });
   }, [email]);
 
   useEffect(() => {
     if (!password) {
-      setPasswordChecker({isValid: null, message: ''});
+      setPasswordChecker({ isValid: null, message: "" });
       return;
     }
     if (password.length < 6) {
-      setPasswordChecker({isValid: false, message: 'Password too short'});
+      setPasswordChecker({ isValid: false, message: "Password too short" });
       return;
     }
     if (!/\d/.test(password)) {
-      setPasswordChecker({isValid: false, message: 'Password must include a digit'});
+      setPasswordChecker({
+        isValid: false,
+        message: "Password must include a digit",
+      });
       return;
     }
     if (!/[a-zA-Z]/.test(password)) {
-      setPasswordChecker({isValid: false, message: 'Password must include a letter'});
+      setPasswordChecker({
+        isValid: false,
+        message: "Password must include a letter",
+      });
       return;
     }
-    setPasswordChecker({isValid: true, message: ''});
+    setPasswordChecker({ isValid: true, message: "" });
   }, [password]);
 
   useEffect(() => {
     if (!password2) {
-      setPassword2Checker({isValid: null, message: ''});
+      setPassword2Checker({ isValid: null, message: "" });
       return;
     }
     if (password2 !== password) {
-      setPassword2Checker({isValid: false, message: 'Passwords do not match'});
+      setPassword2Checker({
+        isValid: false,
+        message: "Passwords do not match",
+      });
       return;
     }
-    setPassword2Checker({isValid: true, message: ''});
+    setPassword2Checker({ isValid: true, message: "" });
   }, [password2]);
 
   const submitForm = (e) => {
@@ -96,25 +117,27 @@ export default function Signup() {
           return res.json();
         }
         if (res.status === 409) {
-          setUsernameChecker("This username is taken");
+          setUsernameChecker({
+            isValid: false,
+            message: "This username is taken",
+          });
         }
         if (res.status === 410) {
-          setEmailChecker("This email is in use");
+          setEmailChecker({ isValid: false, message: "This email is taken" });
         }
         throw new Error();
       })
       .then((data) => {
         setUser(data.user);
         setAccessToken(data.accessToken);
-        setLoading(false)
+        setLoading(false);
         navigate("/dashboard");
       })
       .catch((e) => {
         console.log(e);
+        setLoading(false);
       });
   };
-
-  console.log(usernameChecker, emailChecker, passwordChecker, password2Checker);
 
   return (
     <AuthTemplate>
@@ -166,7 +189,9 @@ export default function Signup() {
               <span
                 tabIndex="0"
                 onClick={() => setShowPassword((prev) => !prev)}
-                onKeyDown={e => e.key === "Enter" && setShowPassword((prev) => !prev)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && setShowPassword((prev) => !prev)
+                }
                 className=" absolute cursor-pointer top-7 right-2 text-color1-dark font-semibold"
               >
                 {showPassword ? "hide" : "show"}
@@ -189,7 +214,9 @@ export default function Signup() {
               <span
                 tabIndex="0"
                 onClick={() => setShowPassword2((prev) => !prev)}
-                onKeyDown={e => e.key === "Enter" && setShowPassword2((prev) => !prev)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && setShowPassword2((prev) => !prev)
+                }
                 className=" absolute cursor-pointer top-7 right-2 text-color1-dark font-semibold"
               >
                 {showPassword2 ? "hide" : "show"}
@@ -202,21 +229,21 @@ export default function Signup() {
         </div>
         <button
           disabled={
-            usernameChecker.isValid ||
-            emailChecker.isValid ||
-            passwordChecker.isValid ||
-            password2Checker.isValid
+            !usernameChecker.isValid ||
+            !emailChecker.isValid ||
+            !passwordChecker.isValid ||
+            !password2Checker.isValid
           }
-          className="mt-4 mb-6 bg-color1 text-white text-lg md:text-xl font-semibold px-6 py-2 rounded-md disabled:bg-color1-lighter disabled:cursor-not-allowed"
+          className="mt-4 mb-6 bg-color1 text-white text-lg md:text-xl font-semibold px-6 py-2 flex justify-center items-center rounded-md disabled:bg-color1-lighter disabled:cursor-not-allowed"
         >
           {loading ? (
             <NextImage
-            className=''
-            src={loader}
-            alt="loader"
-            width={24}
-            height={24}
-          />
+              className=""
+              src={loader}
+              alt="loader"
+              width={24}
+              height={24}
+            />
           ) : (
             "Sign Up"
           )}
@@ -224,4 +251,4 @@ export default function Signup() {
       </form>
     </AuthTemplate>
   );
-};
+}
