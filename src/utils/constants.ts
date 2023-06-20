@@ -1,10 +1,10 @@
-const NOTE_TIME = 60;
-const TURN_TIME_STANDARD = 90;
-const TURN_TIME_RELAXED = 150;
-const FEEDBACK_TIME = 5;
-const ROUND_NUMBER = 2;
+export const NOTE_TIME = 60;
+export const TURN_TIME_STANDARD = 90;
+export const TURN_TIME_RELAXED = 150;
+export const FEEDBACK_TIME = 5;
+export const ROUND_NUMBER = 2;
 
-const ABOUT_TEXT = [
+export const ABOUT_TEXT = [
   [
     {
       title: "About Lingpal",
@@ -38,11 +38,22 @@ const ABOUT_TEXT = [
   ],
 ] as const;
 
-export {
-  ABOUT_TEXT,
-  NOTE_TIME,
-  TURN_TIME_STANDARD,
-  TURN_TIME_RELAXED,
-  FEEDBACK_TIME,
-  ROUND_NUMBER,
+export const motionVariant = {
+  hidden: {
+    translateX: 100,
+    opacity: 0,
+  },
+  show: {
+    translateX: 0,
+    opacity: 1,
+  },
+};
+
+export const staticVariant = {
+  hidden: {
+    opacity: 0,
+  },
+  show: {
+    opacity: 1,
+  },
 };

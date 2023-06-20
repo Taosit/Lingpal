@@ -13,8 +13,8 @@ const useAuthAxios = () => {
 
   authAxios.interceptors.request.use(
     (config) => {
-      if (!config.headers["Authorization"]) {
-        config.headers["Authorization"] = `Bearer ${accessToken}`;
+      if (!config.headers!.Authorization && accessToken) {
+        config.headers!.Authorization = `Bearer ${accessToken}`;
       }
       return config;
     },
@@ -31,9 +31,8 @@ const useAuthAxios = () => {
           credentials: "include",
         });
         const data = await res.json();
-        console.log("setting access token");
         setAccessToken(data.accessToken);
-        prevRequest.headers["Authorization"] = `Bearer ${data.accessToken}`;
+        prevRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         return authAxios(prevRequest);
       }
       return Promise.reject(error);

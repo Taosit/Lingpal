@@ -1,4 +1,4 @@
-import AuthTemplate from "../../components/AuthTemplate";
+import AuthTemplate from "../components/AuthTemplate";
 import NextImage from "next/image";
 import loader from "@/assets/small-loader.png";
 import { useSignUp } from "@/hooks/useSignUp";

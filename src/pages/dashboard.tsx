@@ -11,8 +11,7 @@ import { PlayerStats } from "@/components/Dashboard/PlayerStats/PlayerStats";
 import { useGameStore } from "@/stores/GameStore";
 
 export default function Dashboard() {
-  const { setPlayers, setInGame, setRoomId, setRound, setDescriberIndex } =
-    useGameStore();
+  const initalizeSettings = useGameStore((state) => state.initializeSettings);
   const setUser = useAuthStore((state) => state.setUser);
 
   const [error, setError] = useState({ hasError: false, message: "" });
@@ -28,16 +27,8 @@ export default function Dashboard() {
   };
 
   const play = () => {
-    initializeSettings();
+    initalizeSettings();
     navigate("/game_settings");
-  };
-
-  const initializeSettings = () => {
-    setRound(0);
-    setDescriberIndex(0);
-    setPlayers([]);
-    setInGame(false);
-    setRoomId("");
   };
 
   const logout = () => {

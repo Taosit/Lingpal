@@ -36,16 +36,7 @@ export const SocketContextProvider = ({ children }: PropsWithChildren) => {
   const { socket, connectSocket, disconnectSocket } = useSocket(
     process.env.NEXT_PUBLIC_SERVER_URL
   );
-  const inGame = useGameStore((state) => state.inGame);
   const setPlayers = useGameStore((state) => state.setPlayers);
-
-  useEffect(() => {
-    if (inGame) {
-      connectSocket();
-    } else {
-      disconnectSocket();
-    }
-  }, [connectSocket, disconnectSocket, inGame]);
 
   useEffect(() => {
     socket?.on("update-players", (players) => {

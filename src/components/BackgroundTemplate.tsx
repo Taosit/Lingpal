@@ -1,15 +1,21 @@
-import React from "react";
+import React, { PropsWithChildren } from "react";
 import { motion } from "framer-motion";
-import { useSettingContext } from "../contexts/SettingContext";
 import Image from "next/image";
 import keyboardIcon from "../assets/keyboard.svg";
 import microphoneIcon from "../assets/microphone.svg";
+import { useSettingStore } from "@/stores/SettingStore";
 
-const BackgroundTemplate = ({ children, animateText, animateVoice }) => {
-  const {
-    settings: { mode, level, describer },
-    updateSetting,
-  } = useSettingContext();
+type Props = {
+  animateText?: boolean;
+  animateVoice?: boolean;
+};
+
+const BackgroundTemplate = ({
+  animateText,
+  animateVoice,
+  children,
+}: PropsWithChildren<Props>) => {
+  const { mode, level, describer } = useSettingStore((state) => state.settings);
 
   return (
     <div

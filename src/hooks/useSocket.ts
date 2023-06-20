@@ -10,6 +10,7 @@ export const useSocket = (serverPath: string | undefined) => {
     }
     if (socket && socket.connected) return socket;
     const socketTemp: Socket = io(serverPath);
+    console.log("Connecting socket");
     setSocket(socketTemp);
     return socketTemp;
   }, [serverPath, socket]);

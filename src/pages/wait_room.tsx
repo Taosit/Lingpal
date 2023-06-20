@@ -4,42 +4,45 @@ import BackgroundTemplate from "../components/BackgroundTemplate";
 import { CldImage } from "next-cloudinary";
 import NextImage from "next/image";
 import checkmarkIcon from "../assets/checkmark.png";
-import { useGameContext } from "../contexts/GameContext";
 import WhiteboardTemplate from "../components/WhiteboardTemplate";
-import { useSettingContext } from "../contexts/SettingContext";
 import { useSocketContext } from "../contexts/SocketContext";
-import { useAuthContext } from "../stores/AuthStore";
+import { useAuthStore } from "../stores/AuthStore";
+import { useGameStore } from "@/stores/GameStore";
+import { useSettingStore } from "@/stores/SettingStore";
 
 export default function WaitRoom() {
-  const { players, setPlayers, setInGame, setRoomId } = useGameContext();
-  const { settings } = useSettingContext();
-  const { socket } = useSocketContext();
-  const { user } = useAuthContext();
+  const assignRoom = useGameStore((state) => state.assignRoom);
+  const players = useGameStore((state) => state.players);
+  const settings = useSettingStore();
+  const { socket, disconnectSocket } = useSocketContext();
+  const user = useAuthStore();
 
   useEffect(() => {
+    if (!socket) return;
     console.log("emiting join-room");
-    socket.emit("join-room", { settings, user });
+
     socket.on("game-start", ({ players, roomId }) => {
-      setPlayers(players);
-      setRoomId(roomId);
+      assignRoom(roomId, players);
       navigate("/notes_room");
     });
 
-    // return () => socket.emit("leave-room", { settings, user });
-  }, []);
+    return () => {
+      socket.off("game-start");
+    };
+  }, [socket]);
 
   const router = useRouter();
   const navigate = router.push;
 
   const leaveRoom = () => {
     console.log("leave room");
-    setInGame(false);
+    disconnectSocket();
     navigate("/dashboard");
   };
 
   const setReady = () => {
     const newReadyState = !players[user._id].isReady;
-    socket.emit("player-ready", { user, settings, isReady: newReadyState });
+    socket?.emit("player-ready", { user, settings, isReady: newReadyState });
   };
 
   const getPlayerArray = () => {
