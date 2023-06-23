@@ -1,4 +1,4 @@
-export const NOTE_TIME = 60;
+export const NOTE_TIME = 10;
 export const TURN_TIME_STANDARD = 90;
 export const TURN_TIME_RELAXED = 150;
 export const FEEDBACK_TIME = 5;

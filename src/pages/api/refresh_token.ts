@@ -1,8 +1,9 @@
+import { NextApiRequest, NextApiResponse } from "next";
 import { connectToDB } from "../../db/connect";
 import jwt from "jsonwebtoken";
+import { getSafeUser } from "@/utils/helpers";
 
-// eslint-disable-next-line import/no-anonymous-default-export
-export default async (req, res) => {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const refreshToken = req.cookies?.jwt;
   if (!refreshToken) {
     return res.status(401).json({ message: "Unable to refresh token" });
@@ -13,7 +14,6 @@ export default async (req, res) => {
   if (!user) {
     return res.status(401).json({ message: "Unable to refresh token" });
   }
-  const { password, ...userCopy } = user;
   jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
     if (err || decoded.email !== user.email) {
       return res.status(401).json({ message: "Unable to refresh token" });
@@ -24,6 +24,8 @@ export default async (req, res) => {
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "2h" }
     );
-    return res.status(200).json({ accessToken, user: userCopy });
+    return res.status(200).json({ accessToken, user: getSafeUser(user) });
   });
 };
+
+export default handler;

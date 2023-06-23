@@ -1,4 +1,6 @@
 import Compressor from "compressorjs";
+import { WithId } from "mongodb";
+import { Socket } from "socket.io-client";
 
 export const compress = (
   file: File | Blob,
@@ -17,4 +19,17 @@ export const compress = (
       },
     });
   });
+};
+
+export const emitSocketEvent = <T extends keyof SocketEvent>(
+  socket: Socket | null,
+  event: T,
+  data: SocketEvent[T]
+) => {
+  socket?.emit(event, data);
+};
+
+export const getSafeUser = (rawUser: any) => {
+  const { _id: id, username, avatar, total, win, advanced } = rawUser;
+  return { id, username, avatar, total, win, advanced };
 };

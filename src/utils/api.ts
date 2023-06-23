@@ -9,14 +9,14 @@ export const fetcher = async ({
   body?: object;
   token?: string;
 }) => {
-  console.log("fetch options", {
-    method,
-    ...(body && { body }),
-    headers: {
-      "Content-Type": "application/json",
-      ...(token && { Authentication: `Bearer ${token}` }),
-    },
-  });
+  // console.log("fetch options", {
+  //   method,
+  //   ...(body && { body }),
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //     ...(token && { Authentication: `Bearer ${token}` }),
+  //   },
+  // });
   const res = await fetch(url, {
     method,
     ...(body && { body: JSON.stringify(body) }),

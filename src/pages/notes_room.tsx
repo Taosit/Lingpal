@@ -1,104 +1,69 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
-import BackgroundTemplate from "../../components/BackgroundTemplate";
-import WhiteboardTemplate from "../../components/WhiteboardTemplate";
-import { useAuthContext } from "../../utils/contexts/AuthContext";
-import { useGameContext } from "../../utils/contexts/GameContext";
-import { useSocketContext } from "../../utils/contexts/SocketContext";
-import { NOTE_TIME, TURN_TIME } from "../../utils/constants";
+import BackgroundTemplate from "@/components/BackgroundTemplate";
+import WhiteboardTemplate from "@/components/WhiteboardTemplate";
+import { useGameStore } from "@/stores/GameStore";
+import { useSocketContext } from "@/contexts/SocketContext";
+import { useAuthStore } from "@/stores/AuthStore";
+import { NOTE_TIME } from "@/utils/constants";
+import { Postit } from "@/components/NotesRoom/Postit";
+import { EditingNote } from "@/components/NotesRoom/EditingNote";
+import { useCountdownTimer } from "@/components/NotesRoom/useCountdownTimer";
+import { useNotes } from "@/components/NotesRoom/useNotes";
 
 export default function NoteRoom() {
   const {
     players,
-    setPlayers,
     describerIndex,
     setDescriberIndex,
     round,
     roomId,
-    setPlayerLeftNoteRoom,
-  } = useGameContext();
+    leaveNoteRoom,
+  } = useGameStore();
 
   const { socket } = useSocketContext();
-  const { user, setUser } = useAuthContext();
+  const { user, updatePlayerScore } = useAuthStore();
 
-  const [activeNote, setActiveNote] = useState(null);
-  const [word, setWord] = useState(null);
-  const [notes, setNotes] = useState(["", "", "", ""]);
-  const [time, setTime] = useState(NOTE_TIME);
+  const { notes, activeNote, setActiveNoteIndex, saveNote } = useNotes();
 
   const router = useRouter();
   const navigate = router.push;
 
-  const capitalize = (word) => {
-    return word.replace(word[0], word[0].toUpperCase());
-  };
+  const word = players[user!.id].words
+    ? (players[user!.id].words as string[])[round]
+    : "";
 
-  const formatTime = (time) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = time % 60;
-    return `${minutes}:${seconds}`;
-  };
-
-  const isUserFirstPlayer = () => {
-    return Object.values(players).every(
-      (p) => players[user._id].order <= p.order
-    );
-  };
-
-  const leaveGame = () => {
-    socket.disconnect();
-    setUser((prev) => ({ ...prev, total: prev.total + 1 }));
-    navigate("/dashboard");
-  };
+  const time = useCountdownTimer(NOTE_TIME, notes, () => {
+    const writtenNotes = notes.filter((note) => note !== "");
+    socket?.emit("save-notes", {
+      userId: user!.id,
+      roomId,
+      notes: writtenNotes,
+    });
+    router.push("/game_room");
+  });
 
   useEffect(() => {
-    if (isUserFirstPlayer()) {
-      socket.emit("note-time", { roomId, time: NOTE_TIME });
-    }
-
-    socket.on("update-time", (updatedTime) => {
-      setTime(updatedTime);
-    });
-
-    socket.on("update-notes", (players) => {
-      setPlayers(players);
-    });
-    return () => socket.off("update-time");
-  }, [socket]);
-
-  useEffect(() => {
-    socket.on("player-left", (disconnectingPlayer) => {
-      setPlayerLeftNoteRoom((prev) =>
-        prev ? [...prev, disconnectingPlayer] : [disconnectingPlayer]
-      );
+    socket?.on("player-left", (disconnectingPlayer: Player) => {
+      leaveNoteRoom(disconnectingPlayer);
       if (disconnectingPlayer.order === describerIndex) {
         const nextPlayer = Object.values(players).find(
           (p) => p.order > disconnectingPlayer.order
         );
-        console.log("setting describer index");
-        setDescriberIndex(nextPlayer.order);
+        setDescriberIndex(nextPlayer!.order);
       }
     });
 
-    return () => socket.off("player-left");
-  }, [socket]);
+    return () => {
+      socket?.off("player-left");
+    };
+  }, [describerIndex, leaveNoteRoom, players, setDescriberIndex, socket]);
 
-  useEffect(() => {
-    if (time > 0) return;
-    const writtenNotes = notes.filter((note) => note !== "");
-    socket.emit("save-notes", {
-      userId: user._id,
-      roomId,
-      notes: writtenNotes,
-    });
-    navigate("/game_room");
-  }, [time]);
-
-  useEffect(() => {
-    if (players[user._id].words) {
-      setWord(players[user._id].words[round]);
-    }
-  }, [players]);
+  const leaveGame = () => {
+    socket?.disconnect();
+    updatePlayerScore({ total: 1 });
+    navigate("/dashboard");
+  };
 
   return (
     <BackgroundTemplate>
@@ -114,71 +79,37 @@ export default function NoteRoom() {
             <h2 className="uppercase text-center text-white md:text-lg">
               Your Word
             </h2>
-            {word && (
-              <h1 className="my-2 text-2xl md:text-4xl text-white drop-shadow-2xl text-center font-semibold">
-                {capitalize(word)}
-              </h1>
-            )}
+            <h1 className="capitalize my-2 text-2xl md:text-4xl text-white drop-shadow-2xl text-center font-semibold">
+              {word}
+            </h1>
           </div>
           <div className="w-full grid grid-rows-layout5 gap-4">
             <p className="lg:text-lg">
               Before the game starts, take some time to write notes.
             </p>
             {notes && activeNote !== null ? (
-              <div className="w-full grid gap-2 grid-rows-layout3 h-full items-center">
-                <textarea
-                  className="resize-none h-full bg-yellow-50 w-full focus:outline-yellow-400 rounded-lg px-4 py-2 lg:text-lg"
-                  value={notes[activeNote]}
-                  onChange={(e) =>
-                    setNotes((prev) =>
-                      prev.map((note, i) =>
-                        i === activeNote ? e.target.value : note
-                      )
-                    )
-                  }
-                />
-                <div className="flex flex-col">
-                  <button
-                    className="bg-yellow-300 rounded-xl px-8 py-1 text-semibold self-center"
-                    onClick={() => setActiveNote(null)}
-                  >
-                    OK
-                  </button>
-                </div>
-              </div>
+              <EditingNote
+                activeNote={activeNote}
+                saveNote={saveNote}
+                setActiveNote={setActiveNoteIndex}
+              />
             ) : (
               notes && (
                 <div className="h-full min-h-0 grid sm:grid-cols-2 sm:grid-rows-layout4 gap-4 md:gap-8 place-items-center">
-                  {notes.map((note, i) => {
-                    if (!note) {
-                      return (
-                        <button
-                          key={i}
-                          className="w-full h-full max-h-24 sm:max-h-full border-2 border-dashed border-white flex justify-center items-center cursor-pointer"
-                          onClick={() => setActiveNote(i)}
-                        >
-                          <p className="text-2xl text-white">+</p>
-                        </button>
-                      );
-                    }
-                    return (
-                      <button
-                        key={i}
-                        className="w-full h-full max-h-24 sm:max-h-full px-4 py-2 bg-yellow-200 cursor-pointer drop-shadow-md text-sm md:text-base"
-                        onClick={() => setActiveNote(i)}
-                      >
-                        {note.length > 100 ? `${note.slice(0, 100)}...` : note}
-                      </button>
-                    );
-                  })}
+                  {notes.map((note, i) => (
+                    <Postit
+                      key={i}
+                      index={i}
+                      note={note}
+                      setActiveNote={setActiveNoteIndex}
+                    />
+                  ))}
                 </div>
               )
             )}
           </div>
           <div className="w-full">
-            <p className="text-center md:text-lg">
-              Game starts in {formatTime(time)}
-            </p>
+            <p className="text-center md:text-lg">Game starts in {time}</p>
           </div>
         </div>
       </WhiteboardTemplate>

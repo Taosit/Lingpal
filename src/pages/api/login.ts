@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import cookie from "cookie";
 import { connectToDB } from "../../db/connect";
 import { NextApiRequest, NextApiResponse } from "next";
+import { getSafeUser } from "@/utils/helpers";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { email, password } = req.body;
@@ -12,12 +13,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       .json({ message: "Username and password must be filled" });
   }
   const { db } = await connectToDB();
-  const user = await db.collection("users").findOne({ email: email });
-  const match = await bcrypt.compare(password, user?.password || "0");
-  if (!user || !match) {
+  const rawUser = await db.collection("users").findOne({ email: email });
+  const match = await bcrypt.compare(password, rawUser?.password || "0");
+  if (!rawUser || !match) {
     return res.status(401).json({ message: "Incorrect credentials" });
   }
-  const { refreshToken, password: databasePassword, ...userCopy } = user;
 
   const accessToken = jwt.sign(
     { email: email },
@@ -42,7 +42,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       secure: process.env.NODE_ENV === "production",
     })
   );
-  return res.status(200).json({ accessToken, user: userCopy });
+  return res.status(200).json({ accessToken, user: getSafeUser(rawUser) });
 };
 
 export default handler;

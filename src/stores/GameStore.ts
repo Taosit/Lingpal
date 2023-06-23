@@ -10,9 +10,8 @@ type GameState = {
   setRoomId: (newRoomId: string) => void;
   setRound: (newRound: number) => void;
   setDescriberIndex: (newDescriberIndex: number) => void;
-  setLeftPlayers: (newLeftPlayers: Player[] | null) => void;
+  leaveNoteRoom: (player: Player) => void;
   initializeSettings: () => void;
-  assignRoom: (roomId: string, players: Record<string, Player>) => void;
 };
 
 export const useGameStore = create<GameState>((set) => ({
@@ -27,8 +26,18 @@ export const useGameStore = create<GameState>((set) => ({
   setRound: (newRound: number) => set({ round: newRound }),
   setDescriberIndex: (newDescriberIndex: number) =>
     set({ describerIndex: newDescriberIndex }),
-  setLeftPlayers: (newLeftPlayers: Player[] | null) =>
-    set({ leftPlayers: newLeftPlayers }),
+  leaveNoteRoom: (player: Player) =>
+    set((state) => {
+      if (!state.leftPlayers) {
+        return {
+          leftPlayers: [player],
+        };
+      } else {
+        return {
+          leftPlayers: [...state.leftPlayers, player],
+        };
+      }
+    }),
   initializeSettings: () => {
     set({
       players: {},
@@ -36,8 +45,5 @@ export const useGameStore = create<GameState>((set) => ({
       round: 0,
       describerIndex: 0,
     });
-  },
-  assignRoom: (roomId: string, players: Record<string, Player>) => {
-    set({ roomId, players });
   },
 }));

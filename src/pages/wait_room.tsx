@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/router";
 import BackgroundTemplate from "../components/BackgroundTemplate";
 import { CldImage } from "next-cloudinary";
@@ -8,41 +8,40 @@ import WhiteboardTemplate from "../components/WhiteboardTemplate";
 import { useSocketContext } from "../contexts/SocketContext";
 import { useAuthStore } from "../stores/AuthStore";
 import { useGameStore } from "@/stores/GameStore";
-import { useSettingStore } from "@/stores/SettingStore";
+import { emitSocketEvent } from "@/utils/helpers";
 
 export default function WaitRoom() {
-  const assignRoom = useGameStore((state) => state.assignRoom);
+  const { roomId, setPlayers } = useGameStore();
   const players = useGameStore((state) => state.players);
-  const settings = useSettingStore();
   const { socket, disconnectSocket } = useSocketContext();
-  const user = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+
+  const router = useRouter();
 
   useEffect(() => {
     if (!socket) return;
-    console.log("emiting join-room");
 
-    socket.on("game-start", ({ players, roomId }) => {
-      assignRoom(roomId, players);
-      navigate("/notes_room");
+    socket.on("start-game", (players: SocketEvent["start-game"]) => {
+      setPlayers(players);
+      router.push("/notes_room");
     });
 
     return () => {
       socket.off("game-start");
     };
-  }, [socket]);
-
-  const router = useRouter();
-  const navigate = router.push;
+  }, [router, setPlayers, socket]);
 
   const leaveRoom = () => {
     console.log("leave room");
     disconnectSocket();
-    navigate("/dashboard");
+    router.push("/dashboard");
   };
 
   const setReady = () => {
-    const newReadyState = !players[user._id].isReady;
-    socket?.emit("player-ready", { user, settings, isReady: newReadyState });
+    emitSocketEvent(socket, "player-ready", {
+      playerId: user!.id,
+      roomId,
+    });
   };
 
   const getPlayerArray = () => {
@@ -125,7 +124,7 @@ export default function WaitRoom() {
             {Object.keys(players).length > 1 && (
               <button
                 className={`${
-                  players[user._id].isReady
+                  players[user!.id].isReady
                     ? "ready-button-pressed"
                     : "ready-button"
                 } rounded-xl px-8 py-1 text-lg text-red-800 font-semibold`}

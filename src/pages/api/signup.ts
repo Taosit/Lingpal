@@ -4,6 +4,7 @@ import cookie from "cookie";
 import { nanoid } from "nanoid";
 import { connectToDB } from "../../db/connect";
 import { NextApiRequest, NextApiResponse } from "next";
+import { getSafeUser } from "@/utils/helpers";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { username, email, password } = req.body;
@@ -46,8 +47,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   };
   await db.collection("users").insertOne(user);
 
-  const { refreshToken: refToken, password: pwd, ...userCopy } = user;
-
   res.setHeader(
     "Set-Cookie",
     cookie.serialize("jwt", refreshToken, {
@@ -58,7 +57,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       secure: process.env.NODE_ENV === "production",
     })
   );
-  return res.status(200).json({ accessToken, user: userCopy });
+  return res.status(200).json({ accessToken, user: getSafeUser(user) });
 };
 
 export default handler;

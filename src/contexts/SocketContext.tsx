@@ -39,7 +39,8 @@ export const SocketContextProvider = ({ children }: PropsWithChildren) => {
   const setPlayers = useGameStore((state) => state.setPlayers);
 
   useEffect(() => {
-    socket?.on("update-players", (players) => {
+    socket?.on("update-players", (players: Record<string, Player>) => {
+      console.log("update players", players);
       setPlayers(players);
     });
   }, [setPlayers, socket]);

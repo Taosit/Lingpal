@@ -7,10 +7,13 @@ import { useSocketContext } from "@/contexts/SocketContext";
 import { motionVariant } from "@/utils/constants";
 import { SettingButtons } from "@/components/Settings/SettingButtons/SettingButtons";
 import { useAuthStore } from "@/stores/AuthStore";
+import { useGameStore } from "@/stores/GameStore";
+import { emitSocketEvent } from "@/utils/helpers";
 
 export default function GameSettings() {
   const settings = useSettingStore((state) => state.settings);
   const user = useAuthStore((state) => state.user);
+  const setRoomId = useGameStore((state) => state.setRoomId);
 
   const { connectSocket } = useSocketContext();
 
@@ -32,8 +35,10 @@ export default function GameSettings() {
 
   const play = () => {
     const socket = connectSocket();
-    socket.emit("join-room", { settings, user });
-    navigate("/wait_room");
+    socket.emit("join-room", { settings, player: user! }, (roomId: string) => {
+      setRoomId(roomId);
+      navigate("/wait_room");
+    });
   };
 
   return (
