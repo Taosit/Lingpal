@@ -1,12 +1,16 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cookie from "cookie";
-import { nanoid } from "nanoid";
 import { connectToDB } from "../../db/connect";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSafeUser } from "@/utils/helpers";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+  if (!process.env.REFRESH_TOKEN_SECRET || !process.env.ACCESS_TOKEN_SECRET) {
+    throw new Error(
+      "Missing env variable REFRESH_TOKEN_SECRET or ACCESS_TOKEN_SECRET"
+    );
+  }
   const { username, email, password } = req.body;
   if (!username || !email || !password) {
     return res.status(400).json({ message: "Incomplete fields" });
@@ -35,7 +39,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   );
 
   const user = {
-    _id: nanoid(),
     username,
     email,
     password: hashedPwd,

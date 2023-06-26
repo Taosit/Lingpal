@@ -41,7 +41,7 @@ export default function NoteRoom() {
   );
 
   const playerLeftListener = useCallback(
-    (disconnectingPlayer: SocketEvent["player-left"]) => {
+    ({ disconnectingPlayer }: SocketEvent["player-left"]) => {
       leaveNoteRoom(disconnectingPlayer);
       if (disconnectingPlayer.order === describerIndex) {
         const nextPlayer = Object.values(players).find(

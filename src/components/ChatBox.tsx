@@ -12,6 +12,7 @@ type Props = {
   setInputText: (text: string) => void;
   setDisplay: (display: "notes" | "chatbox") => void;
   showFeedbackField: boolean;
+  describer: Player | undefined;
 };
 
 const ChatBox = ({
@@ -19,9 +20,10 @@ const ChatBox = ({
   setInputText,
   setDisplay,
   showFeedbackField,
+  describer,
 }: Props) => {
   const { socket } = useSocketContext();
-  const { players, round, describerIndex } = useGameStore();
+  const round = useGameStore((state) => state.round);
   const user = useAuthStore((state) => state.user);
 
   const [rating, setRating] = useState(0);
@@ -32,31 +34,14 @@ const ChatBox = ({
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
   const messageLength = useRef(0);
 
-  const describer = Object.values(players).find(
-    (p) => p.order === describerIndex
-  );
-
   const isUserDescriber = useMemo(() => {
-    return players[user!.id].isDescriber;
-  }, [players, user]);
+    return describer?.id === user?.id;
+  }, [describer?.id, user?.id]);
 
   const targetWord = useMemo(() => {
     if (!describer || !describer.words) return "";
     return describer.words[round];
   }, [describer, round]);
-
-  const sendBotMessage = useCallback(
-    (text: string) => {
-      const message: BotMessage = {
-        sender: null,
-        isBot: true,
-        isDescriber: null,
-        text,
-      };
-      setMessages((prev) => [...prev, message]);
-    },
-    [setMessages]
-  );
 
   const receiveMessageListener = useCallback(
     (message: SocketEvent["receive-message"]) => {
@@ -66,51 +51,6 @@ const ChatBox = ({
   );
   useRegisterSocketListener("receive-message", receiveMessageListener);
 
-  const turnUpdateListener = useCallback(
-    ({ nextRound, nextDesc, players }: SocketEvent["turn-updated"]) => {
-      if (nextRound !== round) return;
-      const newDescriber = Object.values(players).find(
-        (p) => p.order === nextDesc
-      );
-      if (!newDescriber) throw new Error("describer not found");
-      const newDescriberLabel =
-        newDescriber.id === user?.id
-          ? "You are"
-          : `${newDescriber.username.replace(
-              newDescriber.username[0],
-              newDescriber.username[0].toUpperCase()
-            )} is`;
-      sendBotMessage(`${newDescriberLabel} describing now.`);
-    },
-    [round, sendBotMessage, user?.id]
-  );
-  useRegisterSocketListener("turn-updated", turnUpdateListener);
-
-  const playerLeftListener = useCallback(
-    ({
-      disconnectingPlayer,
-      nextDesc,
-      nextRound,
-    }: SocketEvent["player-left"]) => {
-      const { [disconnectingPlayer.id]: _, ...remainingPlayers } = players;
-
-      let messageText = `${disconnectingPlayer.username} left the game.`;
-      if (Object.keys(remainingPlayers).length === 1) {
-        messageText += ` There aren't enough players to continue the game.`;
-        sendBotMessage(messageText);
-        return;
-      }
-      if (nextDesc !== undefined && nextRound !== undefined) {
-        messageText += `It's ${
-          isUserDescriber ? "your" : `${describer?.username || "Player"}'s`
-        } turn to describe.`;
-      }
-      sendBotMessage(messageText);
-    },
-    [describer?.username, isUserDescriber, players, sendBotMessage]
-  );
-  useRegisterSocketListener("player-left", playerLeftListener);
-
   const ratingUpdateListener = useCallback(
     (averageRating: SocketEvent["rating-update"]) => {
       setFinalRating(averageRating);
@@ -119,38 +59,25 @@ const ChatBox = ({
   );
   useRegisterSocketListener("rating-update", ratingUpdateListener);
 
-  const gameOverListener = useCallback(
-    async (players: SocketEvent["game-over"]) => {
-      const { win, rank } = players[user!.id];
-
-      const messageText = `Game is over. Your rank is ${rank}.${
-        win ? " Well done!" : ""
-      }`;
-      sendBotMessage(messageText);
-    },
-    [sendBotMessage, user]
-  );
-  useRegisterSocketListener("game-over", gameOverListener);
+  useEffect(() => {
+    if (!lastMessageRef.current) return;
+    if (messageLength.current === messages.length) {
+      lastMessageRef.current.scrollIntoView();
+    } else {
+      messageLength.current = messages.length;
+      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages.length]);
 
   const sendMessage = () => {
     if (!inputText) return;
-    if (inputText.includes(targetWord) && isUserDescriber) {
-      const message: BotMessage = {
-        sender: null,
-        isBot: true,
-        isDescriber: null,
-        text: "This message cannot be sent. You should not include the target word in your description.",
-      };
-      setMessages((prev) => [...prev, message]);
-      return;
-    }
     const message = {
-      sender: user,
-      isBot: null,
+      sender: user!,
+      isBot: false as const,
       isDescriber: isUserDescriber,
       text: inputText,
     };
-    socket?.emit("send-message", { message, targetWord });
+    emitSocketEvent(socket, "send-message", { message, targetWord });
     setInputText("");
   };
 
@@ -165,16 +92,6 @@ const ChatBox = ({
       setRating(10);
     }, 1000);
   };
-
-  useEffect(() => {
-    if (!lastMessageRef.current) return;
-    if (messageLength.current === messages.length) {
-      lastMessageRef.current.scrollIntoView();
-    } else {
-      messageLength.current = messages.length;
-      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages.length]);
 
   return (
     <div

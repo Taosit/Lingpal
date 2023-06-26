@@ -25,7 +25,7 @@ export const emitSocketEvent = <T extends keyof SocketEvent>(
   event: T,
   data?: SocketEvent[T]
 ) => {
-  console.log("--emitting:", event, data);
+  console.log(`%c<--- ${event}`, "color: #4109de; font-weight: 600", data);
   socket?.emit(event, data);
 };
 

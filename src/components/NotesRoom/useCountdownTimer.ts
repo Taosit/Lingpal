@@ -12,15 +12,15 @@ export const useCountdownTimer = (
 ) => {
   const [time, setTime] = useState(allowedTime);
   const { socket } = useSocketContext();
-  const players = useGameStore((state) => state.players);
+  const { players, describerIndex } = useGameStore();
   const user = useAuthStore((state) => state.user);
 
   const depsArray = Array.isArray(deps) ? deps : [deps];
 
   const isUserDescriber = useMemo(() => {
     if (!players || !user) return false;
-    return players[user.id]?.isDescriber;
-  }, [players, user]);
+    return players[user.id]?.order === describerIndex;
+  }, [describerIndex, players, user]);
 
   const startTimer = useCallback(() => {
     if (isUserDescriber) {

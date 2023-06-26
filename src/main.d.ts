@@ -1,6 +1,7 @@
 declare module "next-cloudinary";
 declare module "react-star-ratings";
-declare module "jsonwebtoken";
+declare module "bcrypt";
+declare module "cookie";
 
 type Player = {
   id: string;
@@ -14,7 +15,6 @@ type Player = {
   order: number;
   words: null | string[];
   notes: null | string[];
-  isDescriber: boolean;
 };
 
 type PlayerMessage = {
@@ -68,11 +68,13 @@ type EmittingSocketEvent = {
     callback: (roomId: string) => void;
   };
   "player-ready": undefined;
+  "start-round": undefined;
   "set-timer": number;
   "save-notes": string[];
+  "time-out": string;
   "update-turn": undefined;
   "send-message": {
-    message: string;
+    message: Message;
     targetWord: string;
   };
   "send-rating": number;

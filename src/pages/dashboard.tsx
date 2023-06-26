@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import NextImage from "next/image";
@@ -9,15 +9,22 @@ import { Card } from "../components/Card";
 import { UsernameAndImage } from "@/components/Dashboard/UsernameAndImage/UsernameAndImage";
 import { PlayerStats } from "@/components/Dashboard/PlayerStats/PlayerStats";
 import { useGameStore } from "@/stores/GameStore";
+import { useSocket } from "@/hooks/useSocket";
+import { useSocketContext } from "@/contexts/SocketContext";
 
 export default function Dashboard() {
   const initalizeSettings = useGameStore((state) => state.initializeSettings);
   const setUser = useAuthStore((state) => state.setUser);
+  const { disconnectSocket } = useSocketContext();
 
   const [error, setError] = useState({ hasError: false, message: "" });
 
   const router = useRouter();
   const navigate = router.push;
+
+  useEffect(() => {
+    disconnectSocket();
+  }, [disconnectSocket]);
 
   const showErrorMessage = (message: string) => {
     setError({ hasError: true, message });

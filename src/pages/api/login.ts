@@ -6,6 +6,11 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getSafeUser } from "@/utils/helpers";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+  if (!process.env.REFRESH_TOKEN_SECRET || !process.env.ACCESS_TOKEN_SECRET) {
+    throw new Error(
+      "Missing env variable REFRESH_TOKEN_SECRET or ACCESS_TOKEN_SECRET"
+    );
+  }
   const { email, password } = req.body;
   if (!email || !password) {
     return res

@@ -46,15 +46,6 @@ export default function GameRoom() {
   const [display, setDisplay] = useState("chatbox");
   const [showFeedbackField, setShowFeedbackField] = useState(false);
 
-  const windowSize = useWindowSize();
-  const authAxios = useAuthAxios();
-
-  const { formattedTime, startTimer } = useCountdownTimer(
-    TURN_TIME,
-    players,
-    () => endTurn()
-  );
-
   const playerArray = Object.values(players).sort(
     (player1, player2) => player1.order - player2.order
   );
@@ -64,26 +55,36 @@ export default function GameRoom() {
   let { words, notes } = players[describer.id];
 
   const isUserDescriber = useMemo(() => {
-    return players[user!.id].isDescriber;
-  }, [players, user]);
+    return describer.id === user?.id;
+  }, [describer.id, user?.id]);
 
   const isFirstPlayerDescribing = useMemo(() => {
     return playerArray.every((p) => describer.order <= p.order);
   }, [describer.order, playerArray]);
 
+  const windowSize = useWindowSize();
+  const authAxios = useAuthAxios();
+
+  const { formattedTime, startTimer } = useCountdownTimer(
+    TURN_TIME,
+    players,
+    () => {
+      endTurn();
+      if (isUserDescriber) {
+        emitSocketEvent(socket, "time-out", words?.[round]);
+      }
+    }
+  );
+
   const updateRoundAndDescriber = useCallback(
     (nextDesc: number, nextRound: number) => {
       if (nextRound === round) {
         setDescriberIndex(nextDesc);
-        setTimeout(() => {
-          startTimer();
-        }, 1000);
+        startTimer();
       } else {
-        setTimeout(() => {
-          setRound(nextRound);
-          setDescriberIndex(nextDesc);
-          router.push("/notes_room");
-        }, 3000);
+        setRound(nextRound);
+        setDescriberIndex(nextDesc);
+        router.push("/notes_room");
       }
     },
     [round, router, setDescriberIndex, setRound, startTimer]
@@ -109,15 +110,18 @@ export default function GameRoom() {
 
     setShowFeedbackField(false);
     if (isUserDescriber) {
-      emitSocketEvent(socket, "update-turn");
+      setTimeout(() => {
+        emitSocketEvent(socket, "update-turn");
+      }, 3000);
     }
   }, [askForFeedback, isUserDescriber, mode, socket]);
 
   useEffect(() => {
     if (isFirstPlayerDescribing) {
       startTimer();
+      emitSocketEvent(socket, "start-round");
     }
-  }, [isFirstPlayerDescribing, startTimer]);
+  }, [isFirstPlayerDescribing, socket, startTimer]);
 
   const correctAnswerListener = useCallback(
     (players: SocketEvent["correct-answer"]) => {
@@ -266,6 +270,7 @@ export default function GameRoom() {
               setInputText={setInputText}
               setDisplay={setDisplay}
               showFeedbackField={showFeedbackField}
+              describer={describer}
             />
             <Notes
               word={words?.[round] || "loading"}
@@ -280,6 +285,7 @@ export default function GameRoom() {
             setInputText={setInputText}
             setDisplay={setDisplay}
             showFeedbackField={showFeedbackField}
+            describer={describer}
           />
         ) : (
           <Notes

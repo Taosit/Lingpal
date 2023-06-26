@@ -11,7 +11,7 @@ export const useRegisterSocketListener = <
 
   useEffect(() => {
     socket?.on(event, (data: ReceivingSocketEvent[Event]) => {
-      console.log("--Receiving:", event, data);
+      console.log(`%c---> ${event}`, "color: #039c13; font-weight: 600", data);
       callback(data);
     });
     return () => {
