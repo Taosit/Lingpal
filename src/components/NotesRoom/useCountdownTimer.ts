@@ -1,12 +1,14 @@
 import { useSocketContext } from "@/contexts/SocketContext";
 import { useAuthStore } from "@/stores/AuthStore";
 import { useGameStore } from "@/stores/GameStore";
-import { useCallback, useEffect, useState } from "react";
+import { emitSocketEvent } from "@/utils/helpers";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export const useCountdownTimer = (
   allowedTime: number,
   deps: any | any[],
-  callback: () => void
+  callback: () => void,
+  autoStart = false
 ) => {
   const [time, setTime] = useState(allowedTime);
   const { socket } = useSocketContext();
@@ -15,17 +17,21 @@ export const useCountdownTimer = (
 
   const depsArray = Array.isArray(deps) ? deps : [deps];
 
-  const isUserFirstPlayer = useCallback(() => {
-    return Object.values(players).every(
-      (p) => players[user!.id].order <= p.order
-    );
+  const isUserDescriber = useMemo(() => {
+    if (!players || !user) return false;
+    return players[user.id]?.isDescriber;
   }, [players, user]);
 
-  useEffect(() => {
-    if (isUserFirstPlayer()) {
-      socket?.emit("note-time", allowedTime);
+  const startTimer = useCallback(() => {
+    if (isUserDescriber) {
+      emitSocketEvent(socket, "set-timer", allowedTime);
     }
-  }, [allowedTime, isUserFirstPlayer, socket]);
+  }, [allowedTime, isUserDescriber, socket]);
+
+  useEffect(() => {
+    if (!autoStart) return;
+    startTimer();
+  }, [autoStart, startTimer]);
 
   useEffect(() => {
     if (!socket) return;
@@ -49,5 +55,9 @@ export const useCountdownTimer = (
     return `${minutes}:${seconds}`;
   };
 
-  return formatTime(time);
+  return {
+    time,
+    formattedTime: formatTime(time),
+    startTimer,
+  };
 };

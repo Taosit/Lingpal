@@ -18,7 +18,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (err || decoded.email !== user.email) {
       return res.status(401).json({ message: "Unable to refresh token" });
     }
-    console.log("getting new access token");
     const accessToken = jwt.sign(
       { email: decoded.email },
       process.env.ACCESS_TOKEN_SECRET,

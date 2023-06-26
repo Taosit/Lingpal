@@ -10,7 +10,7 @@ type GameState = {
   setRoomId: (newRoomId: string) => void;
   setRound: (newRound: number) => void;
   setDescriberIndex: (newDescriberIndex: number) => void;
-  leaveNoteRoom: (player: Player) => void;
+  leaveNoteRoom: (player: Player | null) => void;
   initializeSettings: () => void;
 };
 
@@ -26,8 +26,13 @@ export const useGameStore = create<GameState>((set) => ({
   setRound: (newRound: number) => set({ round: newRound }),
   setDescriberIndex: (newDescriberIndex: number) =>
     set({ describerIndex: newDescriberIndex }),
-  leaveNoteRoom: (player: Player) =>
+  leaveNoteRoom: (player: Player | null) =>
     set((state) => {
+      if (!player) {
+        return {
+          leftPlayers: null,
+        };
+      }
       if (!state.leftPlayers) {
         return {
           leftPlayers: [player],

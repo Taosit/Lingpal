@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useRouter } from "next/router";
 import BackgroundTemplate from "../components/BackgroundTemplate";
 import { CldImage } from "next-cloudinary";
@@ -9,39 +9,33 @@ import { useSocketContext } from "../contexts/SocketContext";
 import { useAuthStore } from "../stores/AuthStore";
 import { useGameStore } from "@/stores/GameStore";
 import { emitSocketEvent } from "@/utils/helpers";
+import { useRegisterSocketListener } from "@/hooks/useRegisterSocketListener";
 
 export default function WaitRoom() {
-  const { roomId, setPlayers } = useGameStore();
+  const { setPlayers } = useGameStore();
   const players = useGameStore((state) => state.players);
   const { socket, disconnectSocket } = useSocketContext();
   const user = useAuthStore((state) => state.user);
 
   const router = useRouter();
 
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("start-game", (players: SocketEvent["start-game"]) => {
+  const startGameListener = useCallback(
+    (players: SocketEvent["start-game"]) => {
       setPlayers(players);
       router.push("/notes_room");
-    });
+    },
+    [router, setPlayers]
+  );
 
-    return () => {
-      socket.off("game-start");
-    };
-  }, [router, setPlayers, socket]);
+  useRegisterSocketListener("start-game", startGameListener);
 
   const leaveRoom = () => {
-    console.log("leave room");
     disconnectSocket();
     router.push("/dashboard");
   };
 
   const setReady = () => {
-    emitSocketEvent(socket, "player-ready", {
-      playerId: user!.id,
-      roomId,
-    });
+    emitSocketEvent(socket, "player-ready");
   };
 
   const getPlayerArray = () => {

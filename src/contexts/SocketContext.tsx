@@ -40,7 +40,6 @@ export const SocketContextProvider = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     socket?.on("update-players", (players: Record<string, Player>) => {
-      console.log("update players", players);
       setPlayers(players);
     });
   }, [setPlayers, socket]);

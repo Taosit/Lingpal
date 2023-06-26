@@ -1,5 +1,4 @@
 import Compressor from "compressorjs";
-import { WithId } from "mongodb";
 import { Socket } from "socket.io-client";
 
 export const compress = (
@@ -24,8 +23,9 @@ export const compress = (
 export const emitSocketEvent = <T extends keyof SocketEvent>(
   socket: Socket | null,
   event: T,
-  data: SocketEvent[T]
+  data?: SocketEvent[T]
 ) => {
+  console.log("--emitting:", event, data);
   socket?.emit(event, data);
 };
 

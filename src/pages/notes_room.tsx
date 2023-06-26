@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useRouter } from "next/router";
 import BackgroundTemplate from "@/components/BackgroundTemplate";
 import WhiteboardTemplate from "@/components/WhiteboardTemplate";
@@ -10,16 +10,12 @@ import { Postit } from "@/components/NotesRoom/Postit";
 import { EditingNote } from "@/components/NotesRoom/EditingNote";
 import { useCountdownTimer } from "@/components/NotesRoom/useCountdownTimer";
 import { useNotes } from "@/components/NotesRoom/useNotes";
+import { emitSocketEvent } from "@/utils/helpers";
+import { useRegisterSocketListener } from "@/hooks/useRegisterSocketListener";
 
 export default function NoteRoom() {
-  const {
-    players,
-    describerIndex,
-    setDescriberIndex,
-    round,
-    roomId,
-    leaveNoteRoom,
-  } = useGameStore();
+  const { players, describerIndex, setDescriberIndex, round, leaveNoteRoom } =
+    useGameStore();
 
   const { socket } = useSocketContext();
   const { user, updatePlayerScore } = useAuthStore();
@@ -33,18 +29,19 @@ export default function NoteRoom() {
     ? (players[user!.id].words as string[])[round]
     : "";
 
-  const time = useCountdownTimer(NOTE_TIME, notes, () => {
-    const writtenNotes = notes.filter((note) => note !== "");
-    socket?.emit("save-notes", {
-      userId: user!.id,
-      roomId,
-      notes: writtenNotes,
-    });
-    router.push("/game_room");
-  });
+  const { formattedTime } = useCountdownTimer(
+    NOTE_TIME,
+    notes,
+    () => {
+      const writtenNotes = notes.filter((note) => note !== "");
+      emitSocketEvent(socket, "save-notes", writtenNotes);
+      router.push("/game_room");
+    },
+    true
+  );
 
-  useEffect(() => {
-    socket?.on("player-left", (disconnectingPlayer: Player) => {
+  const playerLeftListener = useCallback(
+    (disconnectingPlayer: SocketEvent["player-left"]) => {
       leaveNoteRoom(disconnectingPlayer);
       if (disconnectingPlayer.order === describerIndex) {
         const nextPlayer = Object.values(players).find(
@@ -52,12 +49,11 @@ export default function NoteRoom() {
         );
         setDescriberIndex(nextPlayer!.order);
       }
-    });
+    },
+    [describerIndex, leaveNoteRoom, players, setDescriberIndex]
+  );
 
-    return () => {
-      socket?.off("player-left");
-    };
-  }, [describerIndex, leaveNoteRoom, players, setDescriberIndex, socket]);
+  useRegisterSocketListener("player-left", playerLeftListener);
 
   const leaveGame = () => {
     socket?.disconnect();
@@ -109,7 +105,9 @@ export default function NoteRoom() {
             )}
           </div>
           <div className="w-full">
-            <p className="text-center md:text-lg">Game starts in {time}</p>
+            <p className="text-center md:text-lg">
+              Game starts in {formattedTime}
+            </p>
           </div>
         </div>
       </WhiteboardTemplate>
