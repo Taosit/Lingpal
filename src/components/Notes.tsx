@@ -1,10 +1,12 @@
+import { useInputTextContext } from "./GameRoom/InputTextContext";
+
 type Props = {
   word: string;
   notes: string[];
   setDisplay: (display: "notes" | "chatbox") => void;
-  setInputText: (text: string) => void;
 };
-const Notes = ({ word, notes, setDisplay, setInputText }: Props) => {
+const Notes = ({ word, notes, setDisplay }: Props) => {
+  const { setInputText } = useInputTextContext();
   const chooseNote = (index: number) => {
     setDisplay("chatbox");
     setInputText(notes[index]);

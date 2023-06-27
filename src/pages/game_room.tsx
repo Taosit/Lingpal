@@ -10,7 +10,7 @@ import {
   TURN_TIME_STANDARD,
 } from "@/utils/constants";
 import BackgroundTemplate from "@/components/BackgroundTemplate";
-import ChatBox from "@/components/ChatBox";
+import ChatBox from "@/components/GameRoom/ChatBox/ChatBox";
 import Notes from "@/components/Notes";
 import { useSocketContext } from "@/contexts/SocketContext";
 import { useAuthStore } from "@/stores/AuthStore";
@@ -20,6 +20,7 @@ import useAuthAxios from "@/hooks/useAuthAxios";
 import { useCountdownTimer } from "@/components/NotesRoom/useCountdownTimer";
 import { emitSocketEvent } from "@/utils/helpers";
 import { useRegisterSocketListener } from "@/hooks/useRegisterSocketListener";
+import { InputTextContextProvider } from "@/components/GameRoom/InputTextContext";
 
 export default function GameRoom() {
   const {
@@ -202,100 +203,94 @@ export default function GameRoom() {
 
   return (
     <BackgroundTemplate>
-      <div className="h-full w-full px-4 sm:px-8 py-8 grid grid-rows-layout6 gap-2 sm:gap-4">
-        <div className="flex justify-between">
-          {players &&
-            playerArray.map((player, i) => (
-              <div
-                key={i}
-                className={`flex flex-col lg:flex-row items-center rounded z-10 ${
-                  player.id === describer.id
-                    ? "outline outline-yellow-500 outline-offset-4 md:outline-offset-8"
-                    : ""
-                }`}
-              >
-                <div className="h-10 w-10 sm:h-16 sm:w-16 rounded-full overflow-clip mr-1">
-                  <CldImage
-                    className="rounded-full object-contain object-center"
-                    width="100"
-                    height="100"
-                    src={player.avatar}
-                    alt="player avatar"
-                  />
+      <InputTextContextProvider>
+        <div className="h-full w-full px-4 sm:px-8 py-8 grid grid-rows-layout6 gap-2 sm:gap-4">
+          <div className="flex justify-between">
+            {players &&
+              playerArray.map((player, i) => (
+                <div
+                  key={i}
+                  className={`flex flex-col lg:flex-row items-center rounded z-10 ${
+                    player.id === describer.id
+                      ? "outline outline-yellow-500 outline-offset-4 md:outline-offset-8"
+                      : ""
+                  }`}
+                >
+                  <div className="h-10 w-10 sm:h-16 sm:w-16 rounded-full overflow-clip mr-1">
+                    <CldImage
+                      className="rounded-full object-contain object-center"
+                      width="100"
+                      height="100"
+                      src={player.avatar}
+                      alt="player avatar"
+                    />
+                  </div>
+                  <div className="flex flex-col items-center lg:items-start lg:pl-4">
+                    <p className="sm:text-lg md:text-xl lg:text-2xl">
+                      {player.username}
+                    </p>
+                    <p className="text-bold text-lg md:text-xl">
+                      {windowSize.width && windowSize.width >= 1024
+                        ? `Score: ${player.score}`
+                        : player.score}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex flex-col items-center lg:items-start lg:pl-4">
-                  <p className="sm:text-lg md:text-xl lg:text-2xl">
-                    {player.username}
-                  </p>
-                  <p className="text-bold text-lg md:text-xl">
-                    {windowSize.width && windowSize.width >= 1024
-                      ? `Score: ${player.score}`
-                      : player.score}
-                  </p>
-                </div>
-              </div>
-            ))}
-        </div>
-        <div className="flex justify-between items-center">
-          <button
-            onClick={() => leaveGame()}
-            className="mr-4 py-1 px-2 rounded-lg bg-red-600 text-white font-semibold text-sm sm:text-base z-10"
-          >
-            Quit
-          </button>
-          <div className="flex items-center">
-            <Image
-              src={timerIcon}
-              alt="time ramaining"
-              width={24}
-              height={24}
-            />
-            <p className="ml-2 text-white font-semibold md:text-xl">
-              {formattedTime}
-            </p>
+              ))}
           </div>
-          {/* {userIsDescriber() ? (
+          <div className="flex justify-between items-center">
+            <button
+              onClick={() => leaveGame()}
+              className="mr-4 py-1 px-2 rounded-lg bg-red-600 text-white font-semibold text-sm sm:text-base z-10"
+            >
+              Quit
+            </button>
+            <div className="flex items-center">
+              <Image
+                src={timerIcon}
+                alt="time ramaining"
+                width={24}
+                height={24}
+              />
+              <p className="ml-2 text-white font-semibold md:text-xl">
+                {formattedTime}
+              </p>
+            </div>
+            {/* {userIsDescriber() ? (
             <div className="w-20 sm:w-24 h-2"></div>
           ) : (
             <button className="py-1 px-2 rounded-lg bg-red-600 text-white font-semibold text-sm sm:text-base z-10">
               Rule Break
             </button>
           )} */}
-          <div className="w-20 sm:w-24 h-2"></div>
-        </div>
-        {isUserDescriber && windowSize.width && windowSize.width >= 1024 ? (
-          <div className="h-full w-full flex">
+            <div className="w-20 sm:w-24 h-2"></div>
+          </div>
+          {isUserDescriber && windowSize.width && windowSize.width >= 1024 ? (
+            <div className="h-full w-full flex">
+              <ChatBox
+                setDisplay={setDisplay}
+                showFeedbackField={showFeedbackField}
+              />
+              <Notes
+                word={words?.[round] || "loading"}
+                notes={notes!}
+                setDisplay={setDisplay}
+              />
+            </div>
+          ) : display === "chatbox" ? (
             <ChatBox
-              inputText={inputText}
-              setInputText={setInputText}
               setDisplay={setDisplay}
               showFeedbackField={showFeedbackField}
-              describer={describer}
             />
+          ) : (
             <Notes
               word={words?.[round] || "loading"}
               notes={notes!}
               setDisplay={setDisplay}
-              setInputText={setInputText}
             />
-          </div>
-        ) : display === "chatbox" ? (
-          <ChatBox
-            inputText={inputText}
-            setInputText={setInputText}
-            setDisplay={setDisplay}
-            showFeedbackField={showFeedbackField}
-            describer={describer}
-          />
-        ) : (
-          <Notes
-            word={words?.[round] || "loading"}
-            notes={notes!}
-            setDisplay={setDisplay}
-            setInputText={setInputText}
-          />
-        )}
-      </div>
+          )}
+        </div>
+      </InputTextContextProvider>
     </BackgroundTemplate>
   );
 }
