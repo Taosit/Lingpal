@@ -44,7 +44,6 @@ export default function NoteRoom() {
 
   const playerLeftListener = useCallback(
     ({ remainingPlayers, nextDesc }: SocketEvent["player-left"]) => {
-      console.log("Player left notes room", remainingPlayers);
       setPlayers(remainingPlayers);
       if (nextDesc !== undefined) {
         setDescriberIndex(nextDesc);

@@ -142,17 +142,12 @@ export default function GameRoom() {
 
   const playerLeftListener = useCallback(
     ({ nextDesc, nextRound, remainingPlayers }: SocketEvent["player-left"]) => {
-      if (Object.keys(remainingPlayers).length === 1) {
-        socket?.disconnect();
-        setTimeout(() => router.push("/dashboard"), 3000);
-        return;
-      }
       if (nextDesc !== undefined && nextRound !== undefined) {
         updateRoundAndDescriber(nextDesc, nextRound);
       }
       setPlayers(remainingPlayers);
     },
-    [router, setPlayers, socket, updateRoundAndDescriber]
+    [setPlayers, updateRoundAndDescriber]
   );
   useRegisterSocketListener("player-left", playerLeftListener);
 
