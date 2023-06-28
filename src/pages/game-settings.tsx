@@ -8,7 +8,6 @@ import { motionVariant } from "@/utils/constants";
 import { SettingButtons } from "@/components/Settings/SettingButtons/SettingButtons";
 import { useAuthStore } from "@/stores/AuthStore";
 import { useGameStore } from "@/stores/GameStore";
-import { emitSocketEvent } from "@/utils/helpers";
 
 export default function GameSettings() {
   const settings = useSettingStore((state) => state.settings);

@@ -1,20 +1,18 @@
 import { useCallback } from "react";
 import { useRouter } from "next/router";
 import BackgroundTemplate from "../components/BackgroundTemplate";
-import { CldImage } from "next-cloudinary";
-import NextImage from "next/image";
-import checkmarkIcon from "../assets/checkmark.png";
 import WhiteboardTemplate from "../components/WhiteboardTemplate";
 import { useSocketContext } from "../contexts/SocketContext";
 import { useAuthStore } from "../stores/AuthStore";
 import { useGameStore } from "@/stores/GameStore";
 import { emitSocketEvent } from "@/utils/helpers";
 import { useRegisterSocketListener } from "@/hooks/useRegisterSocketListener";
+import { Player } from "@/components/WaitRoom/Player/Player";
 
 export default function WaitRoom() {
   const { setPlayers } = useGameStore();
   const players = useGameStore((state) => state.players);
-  const { socket, disconnectSocket } = useSocketContext();
+  const { socket } = useSocketContext();
   const user = useAuthStore((state) => state.user);
 
   const router = useRouter();
@@ -30,7 +28,6 @@ export default function WaitRoom() {
   useRegisterSocketListener("start-game", startGameListener);
 
   const leaveRoom = () => {
-    disconnectSocket();
     router.push("/dashboard");
   };
 
@@ -60,46 +57,7 @@ export default function WaitRoom() {
           </div>
           <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-2">
             {getPlayerArray().map((player, i) => (
-              <div key={i} className="player-card">
-                <div className="w-1/3 relative">
-                  {player?.isReady && (
-                    <div className="absolute top-0 -right-5 w-6 h-6 opacity-50">
-                      <NextImage
-                        src={checkmarkIcon}
-                        alt="Player is ready"
-                        width={50}
-                        height={50}
-                      />
-                    </div>
-                  )}
-                  <div className="h-10 w-10 md:h-16 md:w-16 rounded-full overflow-clip mr-1">
-                    <CldImage
-                      className={`rounded-full object-contain object-center ${
-                        player ? "" : "blur-sm opacity-50"
-                      }`}
-                      width="100"
-                      height="100"
-                      src={player?.avatar || "nruwutqaihxyl7sq6ilm"}
-                      alt="player avatar"
-                    />
-                  </div>
-                </div>
-                {player ? (
-                  <div className="flex w-2/3 flex-col justify-center items-center">
-                    <h5 className="font-semibold md:text-xl">
-                      {player.username}
-                    </h5>
-                    <p className="text-sm sm:text-base">{`Win: ${(!player.total
-                      ? 0
-                      : (player.win * 100) / player.total
-                    ).toFixed(1)}%`}</p>
-                  </div>
-                ) : (
-                  <div className="flex w-2/3 justify-center items-center">
-                    <p className="font-bold text-lg sm:text-xl">?</p>
-                  </div>
-                )}
-              </div>
+              <Player key={player?.id ?? i} player={player} />
             ))}
           </div>
           <div className="w-full min-h-0 overflow-auto px-4 md:px-8 py-4 bg-transparent-50 rounded-lg">
