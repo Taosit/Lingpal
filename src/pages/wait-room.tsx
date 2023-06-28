@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useRouter } from "next/router";
 import BackgroundTemplate from "../components/BackgroundTemplate";
 import { CldImage } from "next-cloudinary";
@@ -22,7 +22,7 @@ export default function WaitRoom() {
   const startGameListener = useCallback(
     (players: SocketEvent["start-game"]) => {
       setPlayers(players);
-      router.push("/notes_room");
+      router.push("/notes-room");
     },
     [router, setPlayers]
   );

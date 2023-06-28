@@ -9,7 +9,6 @@ import { Card } from "../components/Card";
 import { UsernameAndImage } from "@/components/Dashboard/UsernameAndImage/UsernameAndImage";
 import { PlayerStats } from "@/components/Dashboard/PlayerStats/PlayerStats";
 import { useGameStore } from "@/stores/GameStore";
-import { useSocket } from "@/hooks/useSocket";
 import { useSocketContext } from "@/contexts/SocketContext";
 
 export default function Dashboard() {
@@ -35,7 +34,7 @@ export default function Dashboard() {
 
   const play = () => {
     initalizeSettings();
-    navigate("/game_settings");
+    navigate("/game-settings");
   };
 
   const logout = () => {

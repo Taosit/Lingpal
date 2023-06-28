@@ -37,7 +37,7 @@ export default function GameSettings() {
     const socket = connectSocket();
     socket.emit("join-room", { settings, player: user! }, (roomId: string) => {
       setRoomId(roomId);
-      navigate("/wait_room");
+      navigate("/wait-room");
     });
   };
 

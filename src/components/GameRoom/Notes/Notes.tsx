@@ -1,13 +1,24 @@
-import { useInputTextContext } from "./GameRoom/InputTextContext";
+import { useGameStore } from "@/stores/GameStore";
+import { useInputTextContext } from "../InputTextContext";
 
 type Props = {
-  word: string;
-  notes: string[];
   setDisplay: (display: "notes" | "chatbox") => void;
 };
-const Notes = ({ word, notes, setDisplay }: Props) => {
+const Notes = ({ setDisplay }: Props) => {
   const { setInputText } = useInputTextContext();
+
+  const { players, round, describerIndex } = useGameStore();
+
+  const playerArray = Object.values(players).sort(
+    (player1, player2) => player1.order - player2.order
+  );
+
+  const describer = playerArray.find((p) => p.order === describerIndex);
+  if (!describer) throw new Error("describer not found");
+  const { words, notes } = players[describer.id];
+
   const chooseNote = (index: number) => {
+    if (!notes) throw new Error("notes not found");
     setDisplay("chatbox");
     setInputText(notes[index]);
   };
@@ -19,7 +30,7 @@ const Notes = ({ word, notes, setDisplay }: Props) => {
           Notes
         </h2>
         <h1 className="font-bold capitalize text-xl sm:text-2xl mb-4">
-          {word}
+          {words?.[round] || ""}
         </h1>
       </div>
       {notes && notes.length > 0 ? (

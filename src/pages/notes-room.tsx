@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useRouter } from "next/router";
 import BackgroundTemplate from "@/components/BackgroundTemplate";
 import WhiteboardTemplate from "@/components/WhiteboardTemplate";
@@ -12,22 +12,24 @@ import { useCountdownTimer } from "@/components/NotesRoom/useCountdownTimer";
 import { useNotes } from "@/components/NotesRoom/useNotes";
 import { emitSocketEvent } from "@/utils/helpers";
 import { useRegisterSocketListener } from "@/hooks/useRegisterSocketListener";
+import { useUpdateStats } from "@/components/GameRoom/useUpdateStats";
+import { useSettingStore } from "@/stores/SettingStore";
 
 export default function NoteRoom() {
-  const { players, describerIndex, setDescriberIndex, round, leaveNoteRoom } =
-    useGameStore();
+  const { players, setPlayers, setDescriberIndex, round } = useGameStore();
+  const { settings } = useSettingStore();
 
   const { socket } = useSocketContext();
   const { user, updatePlayerScore } = useAuthStore();
 
   const { notes, activeNote, setActiveNoteIndex, saveNote } = useNotes();
-
+  const updateStats = useUpdateStats();
   const router = useRouter();
-  const navigate = router.push;
 
-  const word = players[user!.id].words
-    ? (players[user!.id].words as string[])[round]
-    : "";
+  const word =
+    user?.id && players[user.id].words
+      ? (players[user.id].words as string[])[round]
+      : "";
 
   const { formattedTime } = useCountdownTimer(
     NOTE_TIME,
@@ -35,30 +37,44 @@ export default function NoteRoom() {
     () => {
       const writtenNotes = notes.filter((note) => note !== "");
       emitSocketEvent(socket, "save-notes", writtenNotes);
-      router.push("/game_room");
+      router.push("/game-room");
     },
     true
   );
 
   const playerLeftListener = useCallback(
-    ({ disconnectingPlayer }: SocketEvent["player-left"]) => {
-      leaveNoteRoom(disconnectingPlayer);
-      if (disconnectingPlayer.order === describerIndex) {
-        const nextPlayer = Object.values(players).find(
-          (p) => p.order > disconnectingPlayer.order
-        );
-        setDescriberIndex(nextPlayer!.order);
+    ({ remainingPlayers, nextDesc }: SocketEvent["player-left"]) => {
+      console.log("Player left notes room", remainingPlayers);
+      setPlayers(remainingPlayers);
+      if (nextDesc !== undefined) {
+        setDescriberIndex(nextDesc);
       }
     },
-    [describerIndex, leaveNoteRoom, players, setDescriberIndex]
+    [setDescriberIndex, setPlayers]
   );
-
   useRegisterSocketListener("player-left", playerLeftListener);
+
+  const gameOverListener = useCallback(
+    (players: SocketEvent["game-over"]) => {
+      const win = players[user!.id].rank <= Object.keys(players).length / 2;
+      const advanced = settings.level === "hard";
+      const data = { win, advanced };
+
+      if (settings.mode === "standard") {
+        updateStats(data);
+      }
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 3000);
+    },
+    [router, settings.level, settings.mode, updateStats, user]
+  );
+  useRegisterSocketListener("game-over", gameOverListener);
 
   const leaveGame = () => {
     socket?.disconnect();
     updatePlayerScore({ total: 1 });
-    navigate("/dashboard");
+    router.push("/dashboard");
   };
 
   return (
@@ -66,7 +82,7 @@ export default function NoteRoom() {
       <WhiteboardTemplate>
         <div className="grid h-full w-full gap-6 grid-rows-layout2 relative">
           <button
-            onClick={() => leaveGame()}
+            onClick={leaveGame}
             className="absolute top-0 left-0 py-1 px-2 rounded-lg bg-red-600 text-white font-semibold text-sm sm:text-base z-10"
           >
             Quit

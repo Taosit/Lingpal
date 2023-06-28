@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { CldImage } from "next-cloudinary";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import timerIcon from "../assets/timer.png";
@@ -11,16 +10,17 @@ import {
 } from "@/utils/constants";
 import BackgroundTemplate from "@/components/BackgroundTemplate";
 import ChatBox from "@/components/GameRoom/ChatBox/ChatBox";
-import Notes from "@/components/Notes";
+import Notes from "@/components/GameRoom/Notes/Notes";
 import { useSocketContext } from "@/contexts/SocketContext";
 import { useAuthStore } from "@/stores/AuthStore";
 import { useSettingStore } from "@/stores/SettingStore";
 import useWindowSize from "@/hooks/useWindowSize";
-import useAuthAxios from "@/hooks/useAuthAxios";
 import { useCountdownTimer } from "@/components/NotesRoom/useCountdownTimer";
 import { emitSocketEvent } from "@/utils/helpers";
 import { useRegisterSocketListener } from "@/hooks/useRegisterSocketListener";
 import { InputTextContextProvider } from "@/components/GameRoom/InputTextContext";
+import { Players } from "@/components/GameRoom/Players/Players";
+import { useUpdateStats } from "@/components/GameRoom/useUpdateStats";
 
 export default function GameRoom() {
   const {
@@ -43,7 +43,6 @@ export default function GameRoom() {
   const TURN_TIME =
     mode === "standard" ? TURN_TIME_STANDARD : TURN_TIME_RELAXED;
 
-  const [inputText, setInputText] = useState("");
   const [display, setDisplay] = useState("chatbox");
   const [showFeedbackField, setShowFeedbackField] = useState(false);
 
@@ -53,7 +52,7 @@ export default function GameRoom() {
 
   const describer = playerArray.find((p) => p.order === describerIndex);
   if (!describer) throw new Error("describer not found");
-  let { words, notes } = players[describer.id];
+  let { words } = players[describer.id];
 
   const isUserDescriber = useMemo(() => {
     return describer.id === user?.id;
@@ -64,7 +63,7 @@ export default function GameRoom() {
   }, [describer.order, playerArray]);
 
   const windowSize = useWindowSize();
-  const authAxios = useAuthAxios();
+  const updateStats = useUpdateStats();
 
   const { formattedTime, startTimer } = useCountdownTimer(
     TURN_TIME,
@@ -85,7 +84,7 @@ export default function GameRoom() {
       } else {
         setRound(nextRound);
         setDescriberIndex(nextDesc);
-        router.push("/notes_room");
+        router.push("/notes-room");
       }
     },
     [round, router, setDescriberIndex, setRound, startTimer]
@@ -98,6 +97,7 @@ export default function GameRoom() {
         if (isUserDescriber) {
           emitSocketEvent(socket, "clear-ratings");
         }
+        setShowFeedbackField(false);
         resolve(null);
       }, FEEDBACK_TIME * 1000);
     });
@@ -109,7 +109,6 @@ export default function GameRoom() {
       await askForFeedback();
     }
 
-    setShowFeedbackField(false);
     if (isUserDescriber) {
       setTimeout(() => {
         emitSocketEvent(socket, "update-turn");
@@ -159,35 +158,18 @@ export default function GameRoom() {
 
   const gameOverListener = useCallback(
     (players: SocketEvent["game-over"]) => {
-      const { win } = players[user!.id];
-
+      const win = players[user!.id].rank <= Object.keys(players).length / 2;
       const advanced = level === "hard";
       const data = { win, advanced };
 
       if (mode === "standard") {
-        authAxios
-          .post("/api/update_stats", {
-            data,
-          })
-          .then((response) => {
-            if (response.status === 200) {
-              if (!user) return;
-              const userCopy = { ...user };
-              userCopy.total++;
-              win && userCopy.win++;
-              advanced && userCopy.advanced++;
-              setUser(userCopy);
-            } else {
-              console.log("Something went wrong");
-            }
-          });
+        updateStats(data);
       }
-
       setTimeout(() => {
         router.push("/dashboard");
       }, 3000);
     },
-    [authAxios, level, mode, router, setUser, user]
+    [level, mode, router, updateStats, user]
   );
   useRegisterSocketListener("game-over", gameOverListener);
 
@@ -205,42 +187,10 @@ export default function GameRoom() {
     <BackgroundTemplate>
       <InputTextContextProvider>
         <div className="h-full w-full px-4 sm:px-8 py-8 grid grid-rows-layout6 gap-2 sm:gap-4">
-          <div className="flex justify-between">
-            {players &&
-              playerArray.map((player, i) => (
-                <div
-                  key={i}
-                  className={`flex flex-col lg:flex-row items-center rounded z-10 ${
-                    player.id === describer.id
-                      ? "outline outline-yellow-500 outline-offset-4 md:outline-offset-8"
-                      : ""
-                  }`}
-                >
-                  <div className="h-10 w-10 sm:h-16 sm:w-16 rounded-full overflow-clip mr-1">
-                    <CldImage
-                      className="rounded-full object-contain object-center"
-                      width="100"
-                      height="100"
-                      src={player.avatar}
-                      alt="player avatar"
-                    />
-                  </div>
-                  <div className="flex flex-col items-center lg:items-start lg:pl-4">
-                    <p className="sm:text-lg md:text-xl lg:text-2xl">
-                      {player.username}
-                    </p>
-                    <p className="text-bold text-lg md:text-xl">
-                      {windowSize.width && windowSize.width >= 1024
-                        ? `Score: ${player.score}`
-                        : player.score}
-                    </p>
-                  </div>
-                </div>
-              ))}
-          </div>
+          <Players />
           <div className="flex justify-between items-center">
             <button
-              onClick={() => leaveGame()}
+              onClick={leaveGame}
               className="mr-4 py-1 px-2 rounded-lg bg-red-600 text-white font-semibold text-sm sm:text-base z-10"
             >
               Quit
@@ -256,13 +206,6 @@ export default function GameRoom() {
                 {formattedTime}
               </p>
             </div>
-            {/* {userIsDescriber() ? (
-            <div className="w-20 sm:w-24 h-2"></div>
-          ) : (
-            <button className="py-1 px-2 rounded-lg bg-red-600 text-white font-semibold text-sm sm:text-base z-10">
-              Rule Break
-            </button>
-          )} */}
             <div className="w-20 sm:w-24 h-2"></div>
           </div>
           {isUserDescriber && windowSize.width && windowSize.width >= 1024 ? (
@@ -271,11 +214,7 @@ export default function GameRoom() {
                 setDisplay={setDisplay}
                 showFeedbackField={showFeedbackField}
               />
-              <Notes
-                word={words?.[round] || "loading"}
-                notes={notes!}
-                setDisplay={setDisplay}
-              />
+              <Notes setDisplay={setDisplay} />
             </div>
           ) : display === "chatbox" ? (
             <ChatBox
@@ -283,11 +222,7 @@ export default function GameRoom() {
               showFeedbackField={showFeedbackField}
             />
           ) : (
-            <Notes
-              word={words?.[round] || "loading"}
-              notes={notes!}
-              setDisplay={setDisplay}
-            />
+            <Notes setDisplay={setDisplay} />
           )}
         </div>
       </InputTextContextProvider>
