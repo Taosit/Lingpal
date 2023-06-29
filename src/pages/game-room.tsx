@@ -51,16 +51,21 @@ export default function GameRoom() {
   );
 
   const describer = playerArray.find((p) => p.order === describerIndex);
-  if (!describer) throw new Error("describer not found");
-  let { words } = players[describer.id];
+  // if (!describer) throw new Error("describer not found");
+  const words = useMemo(() => {
+    if (!describer) return [];
+    return describer.words as string[];
+  }, [describer]);
 
   const isUserDescriber = useMemo(() => {
+    if (!describer || !user) return false;
     return describer.id === user?.id;
-  }, [describer.id, user?.id]);
+  }, [describer, user]);
 
   const isFirstPlayerDescribing = useMemo(() => {
+    if (!describer) return false;
     return playerArray.every((p) => describer.order <= p.order);
-  }, [describer.order, playerArray]);
+  }, [describer, playerArray]);
 
   const windowSize = useWindowSize();
   const updateStats = useUpdateStats();
