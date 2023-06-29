@@ -16,7 +16,7 @@ import { useUpdateStats } from "@/components/GameRoom/useUpdateStats";
 import { useSettingStore } from "@/stores/SettingStore";
 
 export default function NoteRoom() {
-  const { players, setPlayers, setDescriberIndex, round } = useGameStore();
+  const { players, setPlayers, setDescriberOrder: setDescriberIndex, round } = useGameStore();
   const { settings } = useSettingStore();
 
   const { socket } = useSocketContext();

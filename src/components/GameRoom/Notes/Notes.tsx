@@ -7,7 +7,7 @@ type Props = {
 const Notes = ({ setDisplay }: Props) => {
   const { setInputText } = useInputTextContext();
 
-  const { players, round, describerIndex } = useGameStore();
+  const { players, round, describerOrder: describerIndex } = useGameStore();
 
   const playerArray = Object.values(players).sort(
     (player1, player2) => player1.order - player2.order

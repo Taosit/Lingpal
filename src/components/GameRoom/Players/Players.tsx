@@ -3,7 +3,7 @@ import { useGameStore } from "@/stores/GameStore";
 import { CldImage } from "next-cloudinary";
 
 export const Players = () => {
-  const { players, describerIndex } = useGameStore();
+  const { players, describerOrder: describerIndex } = useGameStore();
 
   const windowSize = useWindowSize();
 

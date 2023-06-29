@@ -9,7 +9,7 @@ import { useAuthStore } from "@/stores/AuthStore";
 export const useMessages = () => {
   const { socket } = useSocketContext();
   const { inputText, setInputText } = useInputTextContext();
-  const { players, round, describerIndex } = useGameStore();
+  const { players, round, describerOrder: describerIndex } = useGameStore();
   const user = useAuthStore((state) => state.user);
 
   const [messages, setMessages] = useState<Message[]>([]);

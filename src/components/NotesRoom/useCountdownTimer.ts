@@ -12,7 +12,7 @@ export const useCountdownTimer = (
 ) => {
   const [time, setTime] = useState(allowedTime);
   const { socket } = useSocketContext();
-  const { players, describerIndex } = useGameStore();
+  const { players, describerOrder: describerIndex } = useGameStore();
   const user = useAuthStore((state) => state.user);
 
   const depsArray = Array.isArray(deps) ? deps : [deps];
