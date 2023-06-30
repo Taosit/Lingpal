@@ -5,7 +5,7 @@ import StarRatings from "react-star-ratings";
 import { useRating } from "./useRating";
 
 export const RatingArea = () => {
-  const { players, describerIndex } = useGameStore();
+  const { players, describerOrder: describerIndex } = useGameStore();
   const user = useAuthStore((state) => state.user);
 
   const describer = Object.values(players).find(

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import timerIcon from "../assets/timer.png";
@@ -17,161 +17,72 @@ import { useSettingStore } from "@/stores/SettingStore";
 import useWindowSize from "@/hooks/useWindowSize";
 import { useCountdownTimer } from "@/components/NotesRoom/useCountdownTimer";
 import { emitSocketEvent } from "@/utils/helpers";
-import { useRegisterSocketListener } from "@/hooks/useRegisterSocketListener";
 import { InputTextContextProvider } from "@/components/GameRoom/InputTextContext";
 import { Players } from "@/components/GameRoom/Players/Players";
-import { useUpdateStats } from "@/components/GameRoom/useUpdateStats";
-
+import { shallow } from "zustand/shallow";
+import { useRegisterGameRoomListeners } from "@/hooks/useRegisterGameRoomListeners";
 export default function GameRoom() {
-  const {
-    players,
-    setPlayers,
-    round,
-    setRound,
-    describerIndex,
-    setDescriberIndex,
-  } = useGameStore();
-
   const { socket } = useSocketContext();
-  const { loading, user, setUser } = useAuthStore();
-  const {
-    settings: { mode, level, describer: describerInput },
-  } = useSettingStore();
+
+    const { players, round, describerIndex } = useGameStore(store => ({
+        players: store.players,
+        round: store.round,
+        describerIndex: store.describerOrder,
+    }), shallow);
+
+  const { loading, user, setUser } = useAuthStore(store => ({
+    loading: store.loading,
+    user: store.user,
+    setUser: store.setUser,
+  }), shallow);
 
   const router = useRouter();
 
-  const TURN_TIME =
-    mode === "standard" ? TURN_TIME_STANDARD : TURN_TIME_RELAXED;
+  const mode = useSettingStore(store => store.settings.mode);
+  const TURN_TIME = mode === "standard"
+    ? TURN_TIME_STANDARD
+    : TURN_TIME_RELAXED;
 
   const [display, setDisplay] = useState("chatbox");
   const [showFeedbackField, setShowFeedbackField] = useState(false);
 
-  const playerArray = Object.values(players).sort(
-    (player1, player2) => player1.order - player2.order
-  );
-
-  const describer = playerArray.find((p) => p.order === describerIndex);
-  // if (!describer) throw new Error("describer not found");
-  const words = useMemo(() => {
-    if (!describer) return [];
-    return describer.words as string[];
-  }, [describer]);
-
-  const isUserDescriber = useMemo(() => {
-    if (!describer || !user) return false;
-    return describer.id === user?.id;
-  }, [describer, user]);
-
-  const isFirstPlayerDescribing = useMemo(() => {
-    if (!describer) return false;
-    return playerArray.every((p) => describer.order <= p.order);
-  }, [describer, playerArray]);
-
   const windowSize = useWindowSize();
-  const updateStats = useUpdateStats();
 
-  const { formattedTime, startTimer } = useCountdownTimer(
-    TURN_TIME,
-    players,
-    () => {
-      endTurn();
-      if (isUserDescriber) {
-        emitSocketEvent(socket, "time-out", words?.[round]);
-      }
-    }
+  const playerArray = Object.values(players).sort(
+      (player1, player2) => player1.order - player2.order
   );
+  const describer = playerArray.find((p) => p.order === describerIndex);
+  const isUserDescriber = !!describer && !!user && describer.id === user.id;
 
-  const updateRoundAndDescriber = useCallback(
-    (nextDesc: number, nextRound: number) => {
-      if (nextRound === round) {
-        setDescriberIndex(nextDesc);
-        startTimer();
-      } else {
-        setRound(nextRound);
-        setDescriberIndex(nextDesc);
-        router.push("/notes-room");
-      }
-    },
-    [round, router, setDescriberIndex, setRound, startTimer]
-  );
-
-  const askForFeedback = useCallback(() => {
-    return new Promise((resolve) => {
-      setShowFeedbackField(true);
-      setTimeout(() => {
-        if (isUserDescriber) {
-          emitSocketEvent(socket, "clear-ratings");
-        }
-        setShowFeedbackField(false);
-        resolve(null);
-      }, FEEDBACK_TIME * 1000);
-    });
-  }, [isUserDescriber, socket]);
+  const words = describer?.words ?? [];
 
   const endTurn = useCallback(async () => {
-    setDisplay("chatbox");
-    if (mode === "relaxed") {
-      await askForFeedback();
-    }
-
-    if (isUserDescriber) {
-      setTimeout(() => {
-        emitSocketEvent(socket, "update-turn");
-      }, 3000);
-    }
-  }, [askForFeedback, isUserDescriber, mode, socket]);
-
-  useEffect(() => {
-    if (isFirstPlayerDescribing) {
-      startTimer();
-      emitSocketEvent(socket, "start-round");
-    }
-  }, [isFirstPlayerDescribing, socket, startTimer]);
-
-  const correctAnswerListener = useCallback(
-    (players: SocketEvent["correct-answer"]) => {
-      setPlayers(players);
-      endTurn();
-    },
-    [endTurn, setPlayers]
-  );
-  useRegisterSocketListener("correct-answer", correctAnswerListener);
-
-  const turnUpdatedListener = useCallback(
-    ({ nextRound, nextDesc }: SocketEvent["turn-updated"]) => {
-      updateRoundAndDescriber(nextDesc, nextRound);
-    },
-    [updateRoundAndDescriber]
-  );
-  useRegisterSocketListener("turn-updated", turnUpdatedListener);
-
-  const playerLeftListener = useCallback(
-    ({ nextDesc, nextRound, remainingPlayers }: SocketEvent["player-left"]) => {
-      if (nextDesc !== undefined && nextRound !== undefined) {
-        updateRoundAndDescriber(nextDesc, nextRound);
+      setDisplay("chatbox");
+      if (mode === "relaxed") {
+          // Ask for feedback
+          setShowFeedbackField(true);
+          await new Promise(res => setTimeout(res, FEEDBACK_TIME * 1000));
+          if (isUserDescriber) {
+              emitSocketEvent(socket, "clear-ratings");
+          }
+          setShowFeedbackField(false);
       }
-      setPlayers(remainingPlayers);
-    },
-    [setPlayers, updateRoundAndDescriber]
-  );
-  useRegisterSocketListener("player-left", playerLeftListener);
 
-  const gameOverListener = useCallback(
-    (players: SocketEvent["game-over"]) => {
-      const win = players[user!.id].rank <= Object.keys(players).length / 2;
-      const advanced = level === "hard";
-      const data = { win, advanced };
-
-      if (mode === "standard") {
-        updateStats(data);
+      if (isUserDescriber) {
+          await new Promise(res => setTimeout(res, 3000));
+          emitSocketEvent(socket, "update-turn");
       }
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 3000);
-    },
-    [level, mode, router, updateStats, user]
-  );
-  useRegisterSocketListener("game-over", gameOverListener);
+  }, [isUserDescriber, mode, socket]);
+
+  const { formattedTime, startTimer } = useCountdownTimer(
+      TURN_TIME, players, () => {
+          endTurn();
+          if (isUserDescriber) {
+              emitSocketEvent(socket, "time-out", words?.[round]);
+          }
+      });
+
+  useRegisterGameRoomListeners({ startTimer, endTurn });
 
   const leaveGame = () => {
     socket?.disconnect();

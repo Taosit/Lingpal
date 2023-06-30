@@ -13,8 +13,9 @@ type Props = {
 };
 
 const ChatBox = ({ setDisplay, showFeedbackField }: Props) => {
+
   const { inputText, setInputText } = useInputTextContext();
-  const { players, describerIndex } = useGameStore();
+  const { players, describerOrder } = useGameStore();
   const user = useAuthStore((state) => state.user);
 
   const { messages, sendMessage } = useMessages();
@@ -34,13 +35,7 @@ const ChatBox = ({ setDisplay, showFeedbackField }: Props) => {
     }
   }, [messages.length]);
 
-  const describer = Object.values(players).find(
-    (p) => p.order === describerIndex
-  );
-
-  const isUserDescriber = useMemo(() => {
-    return describer?.id === user?.id;
-  }, [describer?.id, user?.id]);
+  const isUserDescriber = !!user && players[user.id]?.order === describerOrder;
 
   const isSameSender = (index: number) => {
     return index > 0 && messages[index].sender === messages[index - 1]?.sender;
