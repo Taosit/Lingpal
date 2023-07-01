@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import timerIcon from "../assets/timer.png";
@@ -24,24 +24,32 @@ import { useRegisterGameRoomListeners } from "@/hooks/useRegisterGameRoomListene
 export default function GameRoom() {
   const { socket } = useSocketContext();
 
-    const { players, round, describerIndex } = useGameStore(store => ({
+  const { players, round, describerOrder, addMessage, clearMessages } =
+    useGameStore(
+      (store) => ({
         players: store.players,
         round: store.round,
-        describerIndex: store.describerOrder,
-    }), shallow);
+        describerOrder: store.describerOrder,
+        addMessage: store.addMessage,
+        clearMessages: store.clearMessages,
+      }),
+      shallow
+    );
 
-  const { loading, user, setUser } = useAuthStore(store => ({
-    loading: store.loading,
-    user: store.user,
-    setUser: store.setUser,
-  }), shallow);
+  const { loading, user, setUser } = useAuthStore(
+    (store) => ({
+      loading: store.loading,
+      user: store.user,
+      setUser: store.setUser,
+    }),
+    shallow
+  );
 
   const router = useRouter();
 
-  const mode = useSettingStore(store => store.settings.mode);
-  const TURN_TIME = mode === "standard"
-    ? TURN_TIME_STANDARD
-    : TURN_TIME_RELAXED;
+  const mode = useSettingStore((store) => store.settings.mode);
+  const TURN_TIME =
+    mode === "standard" ? TURN_TIME_STANDARD : TURN_TIME_RELAXED;
 
   const [display, setDisplay] = useState("chatbox");
   const [showFeedbackField, setShowFeedbackField] = useState(false);
@@ -49,43 +57,61 @@ export default function GameRoom() {
   const windowSize = useWindowSize();
 
   const playerArray = Object.values(players).sort(
-      (player1, player2) => player1.order - player2.order
+    (player1, player2) => player1.order - player2.order
   );
-  const describer = playerArray.find((p) => p.order === describerIndex);
+  const describer = playerArray.find((p) => p.order === describerOrder);
   const isUserDescriber = !!describer && !!user && describer.id === user.id;
 
   const words = describer?.words ?? [];
 
   const endTurn = useCallback(async () => {
-      setDisplay("chatbox");
-      if (mode === "relaxed") {
-          // Ask for feedback
-          setShowFeedbackField(true);
-          await new Promise(res => setTimeout(res, FEEDBACK_TIME * 1000));
-          if (isUserDescriber) {
-              emitSocketEvent(socket, "clear-ratings");
-          }
-          setShowFeedbackField(false);
-      }
-
+    setDisplay("chatbox");
+    if (mode === "relaxed") {
+      // Ask for feedback
+      setShowFeedbackField(true);
+      await new Promise((res) => setTimeout(res, FEEDBACK_TIME * 1000));
       if (isUserDescriber) {
-          await new Promise(res => setTimeout(res, 3000));
-          emitSocketEvent(socket, "update-turn");
+        emitSocketEvent(socket, "clear-ratings");
       }
+      setShowFeedbackField(false);
+    }
+
+    if (isUserDescriber) {
+      await new Promise((res) => setTimeout(res, 3000));
+      emitSocketEvent(socket, "update-turn");
+    }
   }, [isUserDescriber, mode, socket]);
 
   const { formattedTime, startTimer } = useCountdownTimer(
-      TURN_TIME, players, () => {
-          endTurn();
-          if (isUserDescriber) {
-              emitSocketEvent(socket, "time-out", words?.[round]);
-          }
-      });
+    TURN_TIME,
+    players,
+    () => {
+      endTurn();
+      if (isUserDescriber) {
+        emitSocketEvent(socket, "time-out", words?.[round]);
+      }
+    }
+  );
 
   useRegisterGameRoomListeners({ startTimer, endTurn });
 
+  useEffect(() => {
+    if (Object.keys(players).length === 0) {
+      addMessage({
+        sender: null,
+        isBot: true,
+        isDescriber: null,
+        text: "You were disconnected. Redirecting you to the dashboard...",
+      });
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 3000);
+    }
+  }, [addMessage, players, router]);
+
   const leaveGame = () => {
     socket?.disconnect();
+    clearMessages();
     if (!user) return;
     const userCopy = { ...user };
     setUser({ ...userCopy, total: userCopy.total + 1 });

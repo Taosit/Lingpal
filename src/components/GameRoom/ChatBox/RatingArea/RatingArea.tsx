@@ -5,16 +5,16 @@ import StarRatings from "react-star-ratings";
 import { useRating } from "./useRating";
 
 export const RatingArea = () => {
-  const { players, describerOrder: describerIndex } = useGameStore();
+  const { players, describerOrder } = useGameStore();
   const user = useAuthStore((state) => state.user);
 
   const describer = Object.values(players).find(
-    (p) => p.order === describerIndex
+    (p) => p.order === describerOrder
   );
 
   const isUserDescriber = useMemo(() => {
-    return describer?.id === user?.id;
-  }, [describer?.id, user?.id]);
+    return !!describer && describer?.id === user?.id;
+  }, [describer, user?.id]);
 
   const { rating, finalRating, rate } = useRating();
 

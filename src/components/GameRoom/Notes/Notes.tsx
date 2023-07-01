@@ -7,13 +7,13 @@ type Props = {
 const Notes = ({ setDisplay }: Props) => {
   const { setInputText } = useInputTextContext();
 
-  const { players, round, describerOrder: describerIndex } = useGameStore();
+  const { players, round, describerOrder } = useGameStore();
 
   const playerArray = Object.values(players).sort(
     (player1, player2) => player1.order - player2.order
   );
 
-  const describer = playerArray.find((p) => p.order === describerIndex);
+  const describer = playerArray.find((p) => p.order === describerOrder);
   if (!describer) throw new Error("describer not found");
   const { words, notes } = players[describer.id];
 
@@ -24,7 +24,7 @@ const Notes = ({ setDisplay }: Props) => {
   };
 
   return (
-    <div className="w-full lg:w-1/4 h-full px-2 py-4 bg-transparent-20 rounded flex flex-col items-center">
+    <div className="w-full lg:w-1/4 h-full px-2 py-4 bg-transparent-20 rounded flex flex-col items-center z-10">
       <div className="text-center">
         <h2 className="font-bold uppercase text-sm drop-shadow-md text-gray-600">
           Notes

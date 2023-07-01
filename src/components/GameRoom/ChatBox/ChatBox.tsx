@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useRef } from "react";
-import { useAuthStore } from "../../../stores/AuthStore";
+import { useEffect, useRef } from "react";
 import useWindowSize from "../../../hooks/useWindowSize";
-import { useGameStore } from "@/stores/GameStore";
 import { useMessages } from "./useMessages";
 import { useInputTextContext } from "../InputTextContext";
 import { RatingArea } from "./RatingArea/RatingArea";
 import { Message } from "./Message/Message";
+import { useIsUserDescriber } from "@/hooks/useIsUserDescriber";
 
 type Props = {
   setDisplay: (display: "notes" | "chatbox") => void;
@@ -13,12 +12,10 @@ type Props = {
 };
 
 const ChatBox = ({ setDisplay, showFeedbackField }: Props) => {
-
   const { inputText, setInputText } = useInputTextContext();
-  const { players, describerOrder } = useGameStore();
-  const user = useAuthStore((state) => state.user);
 
   const { messages, sendMessage } = useMessages();
+  const isUserDescriber = useIsUserDescriber();
 
   const windowSize = useWindowSize();
 
@@ -34,8 +31,6 @@ const ChatBox = ({ setDisplay, showFeedbackField }: Props) => {
       lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages.length]);
-
-  const isUserDescriber = !!user && players[user.id]?.order === describerOrder;
 
   const isSameSender = (index: number) => {
     return index > 0 && messages[index].sender === messages[index - 1]?.sender;

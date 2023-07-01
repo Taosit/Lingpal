@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useRouter } from "next/router";
 import BackgroundTemplate from "../components/BackgroundTemplate";
 import WhiteboardTemplate from "../components/WhiteboardTemplate";
@@ -8,10 +8,16 @@ import { useGameStore } from "@/stores/GameStore";
 import { emitSocketEvent } from "@/utils/helpers";
 import { useRegisterSocketListener } from "@/hooks/useRegisterSocketListener";
 import { Player } from "@/components/WaitRoom/Player/Player";
+import { shallow } from "zustand/shallow";
 
 export default function WaitRoom() {
-  const { setPlayers } = useGameStore();
-  const players = useGameStore((state) => state.players);
+  const { players, setPlayers } = useGameStore(
+    (store) => ({
+      players: store.players,
+      setPlayers: store.setPlayers,
+    }),
+    shallow
+  );
   const { socket } = useSocketContext();
   const user = useAuthStore((state) => state.user);
 
@@ -26,6 +32,12 @@ export default function WaitRoom() {
   );
 
   useRegisterSocketListener("start-game", startGameListener);
+
+  useEffect(() => {
+    if (Object.keys(players).length === 0) {
+      router.push("/dashboard");
+    }
+  }, [players, router]);
 
   const leaveRoom = () => {
     router.push("/dashboard");

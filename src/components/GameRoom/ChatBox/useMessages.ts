@@ -1,26 +1,31 @@
 import { useRegisterSocketListener } from "@/hooks/useRegisterSocketListener";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useInputTextContext } from "../InputTextContext";
 import { emitSocketEvent } from "@/utils/helpers";
 import { useSocketContext } from "@/contexts/SocketContext";
 import { useGameStore } from "@/stores/GameStore";
 import { useAuthStore } from "@/stores/AuthStore";
+import { shallow } from "zustand/shallow";
 
 export const useMessages = () => {
   const { socket } = useSocketContext();
   const { inputText, setInputText } = useInputTextContext();
-  const { players, round, describerOrder: describerIndex } = useGameStore();
+  const { players, round, messages, describerOrder, addMessage } = useGameStore(
+    (store) => ({
+      players: store.players,
+      round: store.round,
+      describerOrder: store.describerOrder,
+      messages: store.messages,
+      addMessage: store.addMessage,
+    }),
+    shallow
+  );
   const user = useAuthStore((state) => state.user);
 
-  const [messages, setMessages] = useState<Message[]>([]);
-
   const describer = Object.values(players).find(
-    (p) => p.order === describerIndex
+    (p) => p.order === describerOrder
   );
-
-  const isUserDescriber = useMemo(() => {
-    return describer?.id === user?.id;
-  }, [describer?.id, user?.id]);
+  const isUserDescriber = !!describer && describer?.id === user?.id;
 
   const targetWord = useMemo(() => {
     if (!describer || !describer.words) return "";
@@ -29,9 +34,9 @@ export const useMessages = () => {
 
   const receiveMessageListener = useCallback(
     (message: SocketEvent["receive-message"]) => {
-      setMessages((prev) => [...prev, message]);
+      addMessage(message);
     },
-    [setMessages]
+    [addMessage]
   );
   useRegisterSocketListener("receive-message", receiveMessageListener);
 

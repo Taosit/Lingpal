@@ -3,7 +3,7 @@ import { useGameStore } from "@/stores/GameStore";
 import { CldImage } from "next-cloudinary";
 
 export const Players = () => {
-  const { players, describerOrder: describerIndex } = useGameStore();
+  const { players, describerOrder } = useGameStore();
 
   const windowSize = useWindowSize();
 
@@ -11,7 +11,7 @@ export const Players = () => {
     (player1, player2) => player1.order - player2.order
   );
 
-  const describer = playerArray.find((p) => p.order === describerIndex);
+  const describer = playerArray.find((p) => p.order === describerOrder);
 
   return (
     <div className="flex justify-between">

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useRouter } from "next/router";
 import BackgroundTemplate from "@/components/BackgroundTemplate";
 import WhiteboardTemplate from "@/components/WhiteboardTemplate";
@@ -16,7 +16,7 @@ import { useUpdateStats } from "@/components/GameRoom/useUpdateStats";
 import { useSettingStore } from "@/stores/SettingStore";
 
 export default function NoteRoom() {
-  const { players, setPlayers, setDescriberOrder: setDescriberIndex, round } = useGameStore();
+  const { players, setPlayers, setDescriberOrder, round } = useGameStore();
   const { settings } = useSettingStore();
 
   const { socket } = useSocketContext();
@@ -27,7 +27,7 @@ export default function NoteRoom() {
   const router = useRouter();
 
   const word =
-    user?.id && players[user.id].words
+    user?.id && players[user.id] && players[user.id].words
       ? (players[user.id].words as string[])[round]
       : "";
 
@@ -46,10 +46,10 @@ export default function NoteRoom() {
     ({ remainingPlayers, nextDesc }: SocketEvent["player-left"]) => {
       setPlayers(remainingPlayers);
       if (nextDesc !== undefined) {
-        setDescriberIndex(nextDesc);
+        setDescriberOrder(nextDesc);
       }
     },
-    [setDescriberIndex, setPlayers]
+    [setDescriberOrder, setPlayers]
   );
   useRegisterSocketListener("player-left", playerLeftListener);
 
@@ -62,13 +62,17 @@ export default function NoteRoom() {
       if (settings.mode === "standard") {
         updateStats(data);
       }
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 3000);
+      router.push("/dashboard");
     },
     [router, settings.level, settings.mode, updateStats, user]
   );
   useRegisterSocketListener("game-over", gameOverListener);
+
+  useEffect(() => {
+    if (Object.keys(players).length === 0) {
+      router.push("/dashboard");
+    }
+  }, [players, router]);
 
   const leaveGame = () => {
     socket?.disconnect();
