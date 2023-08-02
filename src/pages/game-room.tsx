@@ -57,7 +57,15 @@ export default function GameRoom() {
   const [showFeedbackField, setShowFeedbackField] = useState(false);
 
   const windowSize = useWindowSize();
-  const { mute, unmute, isMuted, destroyPeers } = useVoiceDescriber();
+  const {
+    mute,
+    unmute,
+    isMuted,
+    initiatePeerConnection,
+    acceptPeerConnection,
+    destroyPeerConnection,
+    destroyPlayerPeerConnection,
+  } = useVoiceDescriber();
 
   const playerArray = useMemo(
     () =>
@@ -100,7 +108,14 @@ export default function GameRoom() {
     }
   );
 
-  useRegisterGameRoomListeners({ startTimer, endTurn, destroyPeers });
+  useRegisterGameRoomListeners({
+    startTimer,
+    endTurn,
+    initiatePeerConnection,
+    acceptPeerConnection,
+    destroyPeerConnection,
+    destroyPlayerPeerConnection,
+  });
 
   useEffect(() => {
     if (Object.keys(players).length === 0) {
@@ -118,7 +133,7 @@ export default function GameRoom() {
 
   const leaveGame = () => {
     socket?.disconnect();
-    destroyPeers();
+    destroyPeerConnection();
     clearMessages();
     if (!user) return;
     const userCopy = { ...user };

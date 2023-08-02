@@ -22,14 +22,6 @@ export const useVoiceDescriber = () => {
   const [userStream, setUserStream] = useState<MediaStream | null>(null);
   const [isMuted, setIsMuted] = useState(true);
 
-  const playerArray = useMemo(
-    () =>
-      Object.values(players).sort(
-        (player1, player2) => player1.order - player2.order
-      ),
-    [players]
-  );
-
   const isUserDescriber = useIsUserDescriber();
 
   useEffect(() => {
@@ -60,14 +52,27 @@ export const useVoiceDescriber = () => {
     setIsMuted(false);
   }, [userStream]);
 
-  const destroyPeers = useCallback(() => {
+  const destroyPeerConnection = useCallback(() => {
+    socket?.off("receive-voice-stream");
+    socket?.off("receive-return-signal");
     if (sendingPeer) {
       sendingPeer.destroy();
       setSendingPeer(null);
     }
     Object.values(receivingPeers).forEach((peer) => peer.destroy());
     setReceivingPeers({});
-  }, [receivingPeers, sendingPeer]);
+  }, [receivingPeers, sendingPeer, socket]);
+
+  const destroyPlayerPeerConnection = useCallback(
+    (id: string) => {
+      const peer = receivingPeers[id];
+      if (!peer) return;
+      peer.destroy();
+      delete receivingPeers[id];
+      setReceivingPeers({ ...receivingPeers });
+    },
+    [receivingPeers]
+  );
 
   const createPeer = useCallback(
     (id: string, stream: MediaStream) => {
@@ -89,64 +94,90 @@ export const useVoiceDescriber = () => {
     [socket]
   );
 
-  const createPeers = useCallback(() => {
-    if (!userStream) return;
-    const voicePeers = playerArray
-      .filter((p) => p.id !== userId)
-      .reduce((peers, player) => {
-        const peer = createPeer(player.id, userStream);
-        peers[player.id] = peer;
-        return peers;
-      }, {} as Record<string, Peer.Instance>);
-    return voicePeers;
-  }, [createPeer, playerArray, userId, userStream]);
+  const createPeers = useCallback(
+    (players: Record<string, Player>) => {
+      if (!userStream) return;
+      const voicePeers = Object.values(players)
+        .filter((p) => p.id !== userId)
+        .reduce((peers, player) => {
+          const peer = createPeer(player.id, userStream);
+          peers[player.id] = peer;
+          return peers;
+        }, {} as Record<string, Peer.Instance>);
+      return voicePeers;
+    },
+    [createPeer, userId, userStream]
+  );
+
+  const initiatePeerConnection = useCallback(
+    (players: Record<string, Player>) => {
+      const peers = createPeers(players);
+      if (!peers) return;
+      setReceivingPeers(peers);
+      socket?.on("receive-return-signal", ({ receiverId, signal }) => {
+        const peer = peers[receiverId];
+        peer.signal(signal);
+      });
+    },
+    [createPeers, socket]
+  );
+
+  const acceptPeerConnection = useCallback(() => {
+    socket?.on("receive-voice-stream", ({ senderSocketId, signal }) => {
+      const peer = new Peer({
+        initiator: false,
+        trickle: false,
+      });
+      if (describerAudio.current) {
+        describerAudio.current.autoplay = true;
+      }
+      peer.signal(signal);
+      peer.on("signal", (signal) => {
+        socket?.emit("return-signal", {
+          senderSocketId,
+          signal,
+        });
+      });
+      peer.on("stream", (stream) => {
+        if (describerAudio.current) {
+          describerAudio.current.srcObject = stream;
+        }
+      });
+      setSendingPeer(peer);
+    });
+  }, [socket]);
+
+  const firstMount = useRef(true);
 
   useEffect(() => {
     if (!socket) return;
     if (describerMethod !== "voice") return;
-    if (isUserDescriber) {
-      const peers = createPeers();
-      if (!peers) return;
-      setReceivingPeers(peers);
-      socket.on("receive-return-signal", ({ receiverId, signal }) => {
-        const peer = peers[receiverId];
-        peer.signal(signal);
-      });
-    } else {
-      socket.on("receive-voice-stream", ({ senderId, signal }) => {
-        const peer = new Peer({
-          initiator: false,
-          trickle: false,
-        });
-        if (describerAudio.current) {
-          describerAudio.current.autoplay = true;
-        }
-        peer.signal(signal);
-        peer.on("signal", (signal) => {
-          socket?.emit("return-signal", {
-            senderId,
-            signal,
-          });
-        });
-        peer.on("stream", (stream) => {
-          if (describerAudio.current) {
-            describerAudio.current.srcObject = stream;
-          }
-        });
-        setSendingPeer(peer);
-      });
-    }
+    if (!userStream) return;
+    if (!firstMount.current) return;
+    firstMount.current = false;
 
-    return () => {
-      socket.off("receive-return-signal");
-      socket.off("receive-voice-stream");
-    };
-  }, [createPeers, describerMethod, isUserDescriber, socket]);
+    if (isUserDescriber) {
+      initiatePeerConnection(players);
+    } else {
+      acceptPeerConnection();
+    }
+  }, [
+    acceptPeerConnection,
+    describerMethod,
+    initiatePeerConnection,
+    isUserDescriber,
+    players,
+    socket,
+    userStream,
+  ]);
 
   return {
     mute,
     unmute,
     isMuted,
-    destroyPeers,
+    initiatePeerConnection,
+    acceptPeerConnection,
+    destroyPeerConnection,
+    destroyPlayerPeerConnection,
   };
 };

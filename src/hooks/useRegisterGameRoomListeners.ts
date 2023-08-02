@@ -12,11 +12,17 @@ import { useSocketContext } from "@/contexts/SocketContext";
 export const useRegisterGameRoomListeners = ({
   startTimer,
   endTurn,
-  destroyPeers,
+  initiatePeerConnection,
+  acceptPeerConnection,
+  destroyPeerConnection,
+  destroyPlayerPeerConnection,
 }: {
   startTimer: () => void;
   endTurn: () => void;
-  destroyPeers: () => void;
+  initiatePeerConnection: (players: Record<string, Player>) => void;
+  acceptPeerConnection: () => void;
+  destroyPeerConnection: () => void;
+  destroyPlayerPeerConnection: (id: string) => void;
 }) => {
   const { socket } = useSocketContext();
 
@@ -44,6 +50,7 @@ export const useRegisterGameRoomListeners = ({
   );
 
   const user = useAuthStore((store) => store.user);
+  const thisPlayer = storePlayers[user?.id ?? ""];
 
   const { mode, level } = useSettingStore(
     (store) => ({
@@ -89,9 +96,27 @@ export const useRegisterGameRoomListeners = ({
   const updateStats = useUpdateStats();
 
   const router = useRouter();
+
+  const updatePeerConnection = useCallback(
+    (nextDesc: number, nextRound: number, players: Record<string, Player>) => {
+      destroyPeerConnection();
+      if (nextRound === round && thisPlayer?.order === nextDesc) {
+        initiatePeerConnection(players);
+      } else if (nextRound === round) {
+        acceptPeerConnection();
+      }
+    },
+    [
+      acceptPeerConnection,
+      destroyPeerConnection,
+      initiatePeerConnection,
+      round,
+      thisPlayer?.order,
+    ]
+  );
+
   const updateRoundAndDescriber = useCallback(
     (nextDesc: number, nextRound: number) => {
-      destroyPeers();
       if (nextRound === round) {
         setDescriberOrder(nextDesc);
         startTimer();
@@ -101,7 +126,7 @@ export const useRegisterGameRoomListeners = ({
         router.push("/notes-room");
       }
     },
-    [destroyPeers, round, router, setDescriberOrder, setRound, startTimer]
+    [round, router, setDescriberOrder, setRound, startTimer]
   );
 
   const correctAnswerListener = useCallback(
@@ -115,20 +140,33 @@ export const useRegisterGameRoomListeners = ({
 
   const turnUpdatedListener = useCallback(
     ({ nextRound, nextDesc }: SocketEvent["turn-updated"]) => {
+      updatePeerConnection(nextDesc, nextRound, storePlayers);
       updateRoundAndDescriber(nextDesc, nextRound);
     },
-    [updateRoundAndDescriber]
+    [storePlayers, updatePeerConnection, updateRoundAndDescriber]
   );
   useRegisterSocketListener("turn-updated", turnUpdatedListener);
 
   const playerLeftListener = useCallback(
-    ({ nextDesc, nextRound, remainingPlayers }: SocketEvent["player-left"]) => {
+    ({
+      nextDesc,
+      nextRound,
+      remainingPlayers,
+      disconnectingPlayer,
+    }: SocketEvent["player-left"]) => {
+      setPlayers(remainingPlayers);
       if (nextDesc !== undefined && nextRound !== undefined) {
+        updatePeerConnection(nextDesc, nextRound, remainingPlayers);
         updateRoundAndDescriber(nextDesc, nextRound);
       }
-      setPlayers(remainingPlayers);
+      destroyPlayerPeerConnection(disconnectingPlayer.id);
     },
-    [setPlayers, updateRoundAndDescriber]
+    [
+      destroyPlayerPeerConnection,
+      setPlayers,
+      updatePeerConnection,
+      updateRoundAndDescriber,
+    ]
   );
   useRegisterSocketListener("player-left", playerLeftListener);
 
@@ -141,13 +179,21 @@ export const useRegisterGameRoomListeners = ({
       if (mode === "standard") {
         updateStats(data);
       }
-      destroyPeers();
+      destroyPeerConnection();
       setTimeout(() => {
         clearMessages();
         router.push("/dashboard");
       }, 3000);
     },
-    [clearMessages, destroyPeers, level, mode, router, updateStats, user]
+    [
+      clearMessages,
+      destroyPeerConnection,
+      level,
+      mode,
+      router,
+      updateStats,
+      user,
+    ]
   );
   useRegisterSocketListener("game-over", gameOverListener);
 };
