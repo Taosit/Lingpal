@@ -1,6 +1,6 @@
-export const NOTE_TIME = 10;
-export const TURN_TIME_STANDARD = 30;
-export const TURN_TIME_RELAXED = 45;
+export const NOTE_TIME = 5;
+export const TURN_TIME_STANDARD = 60;
+export const TURN_TIME_RELAXED = 90;
 export const FEEDBACK_TIME = 5;
 export const ROUND_NUMBER = 2;
 

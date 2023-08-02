@@ -20,6 +20,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-star-ratings": "^2.3.0",
+    "simple-peer": "^9.11.1",
     "socket.io-client": "^4.5.1",
     "web-vitals": "^2.1.4",
     "zustand": "^4.3.8"
@@ -44,6 +45,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.3.1",
+    "@types/simple-peer": "^9.11.5",
     "autoprefixer": "^10.4.7",
     "eslint": "^8.30.0",
     "eslint-config-next": "13.1.1",

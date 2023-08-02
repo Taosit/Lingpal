@@ -5,17 +5,30 @@ import { useInputTextContext } from "../InputTextContext";
 import { RatingArea } from "./RatingArea/RatingArea";
 import { Message } from "./Message/Message";
 import { useIsUserDescriber } from "@/hooks/useIsUserDescriber";
+import { useSettingStore } from "@/stores/SettingStore";
 
 type Props = {
   setDisplay: (display: "notes" | "chatbox") => void;
   showFeedbackField: boolean;
+  isMuted: boolean;
+  mute: () => void;
+  unmute: () => void;
 };
 
-const ChatBox = ({ setDisplay, showFeedbackField }: Props) => {
+const ChatBox = ({
+  setDisplay,
+  showFeedbackField,
+  isMuted,
+  mute,
+  unmute,
+}: Props) => {
   const { inputText, setInputText } = useInputTextContext();
 
   const { messages, sendMessage } = useMessages();
   const isUserDescriber = useIsUserDescriber();
+  const describerMethod = useSettingStore((store) => store.settings.describer);
+
+  const showVoicePanel = describerMethod === "voice" && isUserDescriber;
 
   const windowSize = useWindowSize();
 
@@ -64,6 +77,26 @@ const ChatBox = ({ setDisplay, showFeedbackField }: Props) => {
         <RatingArea />
       ) : (
         <>
+          {showVoicePanel && (
+            <div className="w-full flex justify-center items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    isMuted ? "bg-slate-400" : "bg-green-500"
+                  }`}
+                />
+                <p className="text-lg w-24">
+                  {isMuted ? "Muted" : "Speaking..."}
+                </p>
+              </div>
+              <button
+                className="w-24 py-1 rounded-xl bg-red-700 text-white sm:text-xl disabled:bg-blue-200"
+                onClick={() => (isMuted ? unmute() : mute())}
+              >
+                {isMuted ? "Unmute" : "Mute"}
+              </button>
+            </div>
+          )}
           <textarea
             value={inputText}
             onChange={(e) => {

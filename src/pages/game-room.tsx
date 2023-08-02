@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import timerIcon from "../assets/timer.png";
@@ -21,6 +21,8 @@ import { InputTextContextProvider } from "@/components/GameRoom/InputTextContext
 import { Players } from "@/components/GameRoom/Players/Players";
 import { shallow } from "zustand/shallow";
 import { useRegisterGameRoomListeners } from "@/hooks/useRegisterGameRoomListeners";
+import { useVoiceDescriber } from "@/hooks/useVoiceDescriber";
+
 export default function GameRoom() {
   const { socket } = useSocketContext();
 
@@ -55,10 +57,16 @@ export default function GameRoom() {
   const [showFeedbackField, setShowFeedbackField] = useState(false);
 
   const windowSize = useWindowSize();
+  const { mute, unmute, isMuted, destroyPeers } = useVoiceDescriber();
 
-  const playerArray = Object.values(players).sort(
-    (player1, player2) => player1.order - player2.order
+  const playerArray = useMemo(
+    () =>
+      Object.values(players).sort(
+        (player1, player2) => player1.order - player2.order
+      ),
+    [players]
   );
+
   const describer = playerArray.find((p) => p.order === describerOrder);
   const isUserDescriber = !!describer && !!user && describer.id === user.id;
 
@@ -67,7 +75,6 @@ export default function GameRoom() {
   const endTurn = useCallback(async () => {
     setDisplay("chatbox");
     if (mode === "relaxed") {
-      // Ask for feedback
       setShowFeedbackField(true);
       await new Promise((res) => setTimeout(res, FEEDBACK_TIME * 1000));
       if (isUserDescriber) {
@@ -93,7 +100,7 @@ export default function GameRoom() {
     }
   );
 
-  useRegisterGameRoomListeners({ startTimer, endTurn });
+  useRegisterGameRoomListeners({ startTimer, endTurn, destroyPeers });
 
   useEffect(() => {
     if (Object.keys(players).length === 0) {
@@ -111,6 +118,7 @@ export default function GameRoom() {
 
   const leaveGame = () => {
     socket?.disconnect();
+    destroyPeers();
     clearMessages();
     if (!user) return;
     const userCopy = { ...user };
@@ -128,7 +136,7 @@ export default function GameRoom() {
           <div className="flex justify-between items-center">
             <button
               onClick={leaveGame}
-              className="mr-4 py-1 px-2 rounded-lg bg-red-600 text-white font-semibold text-sm sm:text-base z-10"
+              className="mr-4 py-1 px-2 rounded-lg bg-red-700 text-white font-semibold text-sm sm:text-base z-10"
             >
               Quit
             </button>
@@ -150,6 +158,9 @@ export default function GameRoom() {
               <ChatBox
                 setDisplay={setDisplay}
                 showFeedbackField={showFeedbackField}
+                isMuted={isMuted}
+                mute={mute}
+                unmute={unmute}
               />
               <Notes setDisplay={setDisplay} />
             </div>
@@ -157,6 +168,9 @@ export default function GameRoom() {
             <ChatBox
               setDisplay={setDisplay}
               showFeedbackField={showFeedbackField}
+              isMuted={isMuted}
+              mute={mute}
+              unmute={unmute}
             />
           ) : (
             <Notes setDisplay={setDisplay} />

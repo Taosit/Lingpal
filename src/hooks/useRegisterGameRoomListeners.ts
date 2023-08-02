@@ -12,9 +12,11 @@ import { useSocketContext } from "@/contexts/SocketContext";
 export const useRegisterGameRoomListeners = ({
   startTimer,
   endTurn,
+  destroyPeers,
 }: {
   startTimer: () => void;
   endTurn: () => void;
+  destroyPeers: () => void;
 }) => {
   const { socket } = useSocketContext();
 
@@ -89,6 +91,7 @@ export const useRegisterGameRoomListeners = ({
   const router = useRouter();
   const updateRoundAndDescriber = useCallback(
     (nextDesc: number, nextRound: number) => {
+      destroyPeers();
       if (nextRound === round) {
         setDescriberOrder(nextDesc);
         startTimer();
@@ -98,7 +101,7 @@ export const useRegisterGameRoomListeners = ({
         router.push("/notes-room");
       }
     },
-    [round, router, setDescriberOrder, setRound, startTimer]
+    [destroyPeers, round, router, setDescriberOrder, setRound, startTimer]
   );
 
   const correctAnswerListener = useCallback(
@@ -138,12 +141,13 @@ export const useRegisterGameRoomListeners = ({
       if (mode === "standard") {
         updateStats(data);
       }
+      destroyPeers();
       setTimeout(() => {
         clearMessages();
         router.push("/dashboard");
       }, 3000);
     },
-    [clearMessages, level, mode, router, updateStats, user]
+    [clearMessages, destroyPeers, level, mode, router, updateStats, user]
   );
   useRegisterSocketListener("game-over", gameOverListener);
 };
