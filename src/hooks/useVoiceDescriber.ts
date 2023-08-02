@@ -12,7 +12,9 @@ export const useVoiceDescriber = () => {
   const userId = useAuthStore((store) => store.user?.id);
   const { socket } = useSocketContext();
 
-  const describerAudio = useRef(new Audio());
+  const describerAudio = useRef<HTMLAudioElement | undefined>(
+    typeof Audio !== "undefined" ? new Audio("") : undefined
+  );
   const [receivingPeers, setReceivingPeers] = useState<
     Record<string, Peer.Instance>
   >({});
@@ -116,7 +118,9 @@ export const useVoiceDescriber = () => {
           initiator: false,
           trickle: false,
         });
-        describerAudio.current.autoplay = true;
+        if (describerAudio.current) {
+          describerAudio.current.autoplay = true;
+        }
         peer.signal(signal);
         peer.on("signal", (signal) => {
           socket?.emit("return-signal", {
@@ -125,7 +129,9 @@ export const useVoiceDescriber = () => {
           });
         });
         peer.on("stream", (stream) => {
-          describerAudio.current.srcObject = stream;
+          if (describerAudio.current) {
+            describerAudio.current.srcObject = stream;
+          }
         });
         setSendingPeer(peer);
       });

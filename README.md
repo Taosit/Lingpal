@@ -1,4 +1,4 @@
-# Lingpal (still in development, but MVP is ready)
+# Lingpal
 
 A multiplayer game to practice your target language. Live on [https://lingpal.vercel.app/](https://lingpal.vercel.app/).
 Backend repo: [https://github.com/Taosit/Linpal-server](https://github.com/Taosit/Linpal-server).
@@ -18,15 +18,11 @@ An account is needed to play the game. After logging in, you will have access to
 ## Technologies
 
 - React
+- TypeScript
 - NextJS
 - Deno
 - MongoDB
 - TailwindCSS
 - JWT token
 - Socket.io
-
-## Currect progress
-
-- UI: Landing page, login and signup page, dashboard page, game setting page, waitroom page, note page and game page.
-- Backend: Auth routes, user route for profile image upload and user database.
-- Socket: Players joining, leaving, turn taking and messaging
+- WebRTC
