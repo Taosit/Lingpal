@@ -23,8 +23,10 @@ export const InputGroup = ({
 
   return (
     <div className="py-1 flex flex-col items-start">
-      <label className="relative w-full" htmlFor={id}>
-        <span className="mb-1">{label}</span>
+      <div className="relative w-full">
+        <label className="mb-1" htmlFor={id}>
+          {label}
+        </label>
         <input
           id={id}
           className="border border-color1-dark rounded-sm focus:outline-2 focus:outline-color1-dark p-1 w-full"
@@ -47,7 +49,7 @@ export const InputGroup = ({
         <div className="h-4 min-w-1 text-sm md:text-md font-semibold left-0 text-red-700">
           {checker.message || " "}
         </div>
-      </label>
+      </div>
     </div>
   );
 };

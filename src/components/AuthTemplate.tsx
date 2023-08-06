@@ -41,7 +41,7 @@ const AuthTemplate = ({ children }: PropsWithChildren) => {
                 authType === "signUp" ? "border-b-2 border-b-white" : ""
               }`}
             >
-              Sign Up
+              Signup
             </button>
             <button
               onClick={() => navigate("/login")}
@@ -49,7 +49,7 @@ const AuthTemplate = ({ children }: PropsWithChildren) => {
                 authType === "signIn" ? "border-b-2 border-b-white" : ""
               }`}
             >
-              Log In
+              Login
             </button>
           </CardHeader>
           <CardBody className="w-3xl">{children}</CardBody>

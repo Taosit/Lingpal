@@ -36,6 +36,7 @@ export default function Login() {
           />
         </div>
         <button
+          type="submit"
           disabled={!email || !password || !!error}
           className="mt-4 mb-6 bg-color1 text-white text-lg md:text-xl font-semibold px-6 py-2 rounded-md disabled:bg-color1-lighter disabled:cursor-not-allowed flex justify-center items-center"
         >
