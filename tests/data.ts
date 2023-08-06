@@ -15,4 +15,20 @@ export const credentials = {
     email: "test3@test.com",
     password: "test123",
   },
+  user5: {
+    email: "test4@test.com",
+    password: "test123",
+  },
+  user6: {
+    email: "test5@test.com",
+    password: "test123",
+  },
+  user7: {
+    email: "test6@test.com",
+    password: "test123",
+  },
+  user8: {
+    email: "test7@test.com",
+    password: "test123",
+  },
 };
