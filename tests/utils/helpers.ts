@@ -35,7 +35,4 @@ export const logInAndChooseSettings = async (
 
   const settingsPage = new SettingsPage(page);
   await settingsPage.setSettings(settings);
-  const readyButton = page.getByRole("button", { name: "Ready" });
-  await readyButton.waitFor({ state: "visible" });
-  await readyButton.click();
 };

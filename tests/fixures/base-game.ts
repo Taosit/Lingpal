@@ -16,8 +16,8 @@ type pages = {
 export const test = base.extend<pages>({
   player1: async ({ browser }, use) => {
     const page = await (await browser.newContext()).newPage();
-    await page.waitForTimeout(100);
-    logInAndChooseSettings(
+    await page.waitForTimeout(1000);
+    await logInAndChooseSettings(
       page,
       credentials.user1,
       getSetting("standard", "easy", "text")
@@ -26,7 +26,7 @@ export const test = base.extend<pages>({
   },
   player2: async ({ browser }, use) => {
     const page = await (await browser.newContext()).newPage();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(2000);
     logInAndChooseSettings(
       page,
       credentials.user2,
@@ -36,7 +36,7 @@ export const test = base.extend<pages>({
   },
   player3: async ({ browser }, use) => {
     const page = await (await browser.newContext()).newPage();
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(3000);
     logInAndChooseSettings(
       page,
       credentials.user3,
@@ -46,7 +46,7 @@ export const test = base.extend<pages>({
   },
   player4: async ({ browser }, use) => {
     const page = await (await browser.newContext()).newPage();
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(4000);
     logInAndChooseSettings(
       page,
       credentials.user4,
@@ -56,7 +56,7 @@ export const test = base.extend<pages>({
   },
   player5: async ({ browser }, use) => {
     const page = await (await browser.newContext()).newPage();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(5000);
     logInAndChooseSettings(
       page,
       credentials.user5,
@@ -66,7 +66,7 @@ export const test = base.extend<pages>({
   },
   player6: async ({ browser }, use) => {
     const page = await (await browser.newContext()).newPage();
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(6000);
     logInAndChooseSettings(
       page,
       credentials.user6,
@@ -76,7 +76,7 @@ export const test = base.extend<pages>({
   },
   player7: async ({ browser }, use) => {
     const page = await (await browser.newContext()).newPage();
-    await page.waitForTimeout(700);
+    await page.waitForTimeout(1000);
     logInAndChooseSettings(
       page,
       credentials.user7,
@@ -86,7 +86,7 @@ export const test = base.extend<pages>({
   },
   player8: async ({ browser }, use) => {
     const page = await (await browser.newContext()).newPage();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(2000);
     logInAndChooseSettings(
       page,
       credentials.user8,

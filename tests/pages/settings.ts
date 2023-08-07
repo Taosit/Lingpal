@@ -37,6 +37,5 @@ export default class SettingsPage {
     await this.selectMode(settings.mode);
     await this.selectDifficulty(settings.difficulty);
     await this.selectDescriber(settings.describer);
-    await this.clickPlay();
   }
 }
