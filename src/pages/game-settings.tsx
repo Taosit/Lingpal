@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
 import BackgroundTemplate from "../components/BackgroundTemplate";
@@ -8,8 +8,10 @@ import { motionVariant } from "@/utils/constants";
 import { SettingButtons } from "@/components/Settings/SettingButtons/SettingButtons";
 import { useAuthStore } from "@/stores/AuthStore";
 import { useGameStore } from "@/stores/GameStore";
+import { useRegisterSocketListener } from "@/hooks/useRegisterSocketListener";
 
 export default function GameSettings() {
+  const setPlayers = useGameStore((state) => state.setPlayers);
   const settings = useSettingStore((state) => state.settings);
   const user = useAuthStore((state) => state.user);
   const setRoomId = useGameStore((state) => state.setRoomId);
@@ -32,11 +34,21 @@ export default function GameSettings() {
   const router = useRouter();
   const navigate = router.push;
 
+  const startGameListener = useCallback(
+    (players: SocketEvent["start-game"]) => {
+      setPlayers(players);
+      router.push("/notes-room");
+    },
+    [router, setPlayers]
+  );
+
+  useRegisterSocketListener("start-game", startGameListener);
+
   const play = () => {
     const socket = connectSocket();
     socket.emit("join-room", { settings, player: user! }, (roomId: string) => {
-      setRoomId(roomId);
       navigate("/wait-room");
+      setRoomId(roomId);
     });
   };
 

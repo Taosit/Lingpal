@@ -1,12 +1,11 @@
-import { Page } from "@playwright/test";
-import { describe, test } from "./fixures/base-game";
+import { test, Page } from "@playwright/test";
 import GamePage from "./pages/game";
 import NotesPage from "./pages/notes";
 import { credentials } from "./data";
 import { getSetting, logInAndChooseSettings } from "./utils/helpers";
 import SettingsPage from "./pages/settings";
 
-describe("2 player standard mode", () => {
+test.describe("2 player standard mode", () => {
   let player1: Page;
   let player2: Page;
 

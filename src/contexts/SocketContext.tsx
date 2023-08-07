@@ -1,7 +1,15 @@
-import { PropsWithChildren, createContext, useContext, useEffect, useMemo } from "react";
+import {
+  PropsWithChildren,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+} from "react";
 import { useSocket } from "../hooks/useSocket";
 import { Socket } from "socket.io-client";
 import { useGameStore } from "@/stores/GameStore";
+import { useRegisterSocketListener } from "@/hooks/useRegisterSocketListener";
 
 type SocketContextType = {
   socket: Socket | null;
@@ -36,16 +44,21 @@ export const SocketContextProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     const handleUpdatePlayers = (players: Record<string, Player>) => {
       setPlayers(players);
-    }
+    };
     socket?.on("update-players", handleUpdatePlayers);
     return () => {
       socket?.off("update-players", handleUpdatePlayers);
-    }
+    };
   }, [setPlayers, socket]);
 
-  const socketContextValue = useMemo(() => ({
-    socket, connectSocket, disconnectSocket
-  }), [socket, connectSocket, disconnectSocket]);
+  const socketContextValue = useMemo(
+    () => ({
+      socket,
+      connectSocket,
+      disconnectSocket,
+    }),
+    [socket, connectSocket, disconnectSocket]
+  );
 
   return (
     <SocketContext.Provider value={socketContextValue}>

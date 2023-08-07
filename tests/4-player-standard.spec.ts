@@ -1,11 +1,10 @@
-import { Page } from "@playwright/test";
-import { describe, test } from "./fixures/base-game";
+import { test, Page } from "@playwright/test";
 import GamePage from "./pages/game";
 import { getSetting, logInAndChooseSettings } from "./utils/helpers";
 import { credentials } from "./data";
 import SettingsPage from "./pages/settings";
 
-describe("4 player standard mode", () => {
+test.describe("4 player standard mode", () => {
   let player1: Page;
   let player2: Page;
   let player3: Page;
@@ -46,10 +45,6 @@ describe("4 player standard mode", () => {
     await player3Settings.clickPlay();
     const player4Settings = new SettingsPage(player4);
     await player4Settings.clickPlay();
-    await player1.getByRole("button", { name: "Ready" }).click();
-    await player2.getByRole("button", { name: "Ready" }).click();
-    await player3.getByRole("button", { name: "Ready" }).click();
-    await player4.getByRole("button", { name: "Ready" }).click();
   });
 
   test("No player leaves", async () => {
