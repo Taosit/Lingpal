@@ -22,7 +22,9 @@ export const PlayerStats = () => {
             <NextImage src={gamelIcon} alt="game" width={24} height={24} />
             <p>Total</p>
           </span>
-          <span className="">{loading || !user ? 0 : user.total}</span>
+          <span data-testid="total" className="">
+            {loading || !user ? 0 : user.total}
+          </span>
         </div>
         <hr />
         <div className="my-6 md:text-lg flex justify-between">
@@ -35,7 +37,9 @@ export const PlayerStats = () => {
             />
             <p>Win</p>
           </span>
-          <span className="">{loading || !user ? 0 : win}%</span>
+          <span data-testid="win" className="">
+            {loading || !user ? 0 : win}%
+          </span>
         </div>
         <hr />
         <div className="my-6 md:text-lg flex justify-between">

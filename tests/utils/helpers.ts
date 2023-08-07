@@ -31,8 +31,15 @@ export const logInAndChooseSettings = async (
   const login = new LoginPage(page);
   await login.login(user);
 
+  const total = parseInt(
+    (await page.getByTestId("total").textContent()) as string
+  );
+
+  const win = parseInt((await page.getByTestId("win").textContent()) as string);
+
   await page.getByRole("button", { name: "Play" }).click();
 
   const settingsPage = new SettingsPage(page);
   await settingsPage.setSettings(settings);
+  return { total, win };
 };

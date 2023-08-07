@@ -25,18 +25,25 @@ export const Message = forwardRef<HTMLDivElement | null, Props>(
             {message.sender.id === user!.id ? "You" : message.sender.username}
           </p>
         )}
-
-        <div
-          className={`p-2 rounded-xl  ${
-            message.isBot
-              ? "bg-slate-100 border-2 border-yellow-200"
-              : message.isDescriber
-              ? "bg-orange-600 text-white"
-              : "bg-green-600 text-white"
-          }`}
-        >
-          {message.text}
-        </div>
+        {message.isBot ? (
+          <div
+            data-testid="bot-message"
+            className={"p-2 rounded-xl bg-slate-100 border-2 border-yellow-200"}
+          >
+            {message.text}
+          </div>
+        ) : (
+          <div
+            data-testid="player-message"
+            className={`p-2 rounded-xl  ${
+              message.isDescriber
+                ? "bg-orange-600 text-white"
+                : "bg-green-600 text-white"
+            }`}
+          >
+            {message.text}
+          </div>
+        )}
       </div>
     );
   }

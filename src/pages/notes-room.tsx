@@ -55,7 +55,11 @@ export default function NoteRoom() {
 
   const gameOverListener = useCallback(
     (players: SocketEvent["game-over"]) => {
-      const win = players[user!.id].rank <= Object.keys(players).length / 2;
+      const numberOfPlayers = Object.keys(players).length;
+      const win =
+        numberOfPlayers === 1
+          ? true
+          : players[user!.id].rank <= numberOfPlayers / 2;
       const advanced = settings.level === "hard";
       const data = { win, advanced };
 

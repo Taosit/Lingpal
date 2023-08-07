@@ -1,7 +1,6 @@
 import {
   PropsWithChildren,
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -9,7 +8,6 @@ import {
 import { useSocket } from "../hooks/useSocket";
 import { Socket } from "socket.io-client";
 import { useGameStore } from "@/stores/GameStore";
-import { useRegisterSocketListener } from "@/hooks/useRegisterSocketListener";
 
 type SocketContextType = {
   socket: Socket | null;

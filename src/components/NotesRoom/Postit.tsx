@@ -20,6 +20,7 @@ export const Postit = ({ note, index, setActiveNote }: Props) => {
   } else {
     return (
       <button
+        data-testid="filled-note"
         className="w-full h-full max-h-24 sm:max-h-full px-4 py-2 bg-yellow-200 cursor-pointer drop-shadow-md text-sm md:text-base"
         onClick={() => setActiveNote(index)}
       >
