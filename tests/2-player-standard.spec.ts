@@ -2,9 +2,14 @@ import { test, Page, expect } from "@playwright/test";
 import GamePage from "./pages/game";
 import NotesPage from "./pages/notes";
 import { credentials } from "./data";
-import { getSetting, logInAndChooseSettings } from "./utils/helpers";
+import {
+  assertHasLost,
+  assertHasWon,
+  assertRank,
+  getSetting,
+  logInAndChooseSettings,
+} from "./utils/helpers";
 import SettingsPage from "./pages/settings";
-import DashboardPage from "./pages/dashboard";
 
 test.describe("2 player standard mode", () => {
   let player1: Page;
@@ -48,16 +53,9 @@ test.describe("2 player standard mode", () => {
 
     await player1.waitForURL("/dashboard");
     await player1.waitForTimeout(1000);
-    const player1Dashboard = new DashboardPage(player1);
-    const player1Total = await player1Dashboard.getTotal();
-    const player1Win = await player1Dashboard.getWin();
-    const player2Dashboard = new DashboardPage(player2);
-    const player2Total = await player2Dashboard.getTotal();
-    const player2Win = await player2Dashboard.getWin();
-    expect(player1Total).toBe(player1Stats.total + 1);
-    expect(player1Win).toBeLessThan(player1Stats.win);
-    expect(player2Total).toBe(player2Stats.total + 1);
-    expect(player2Win).not.toBeLessThanOrEqual(player2Stats.win);
+
+    await assertHasLost(player1, player1Stats);
+    await assertHasWon(player2, player2Stats);
   });
 
   test("Player takes and edits notes", async () => {
@@ -91,18 +89,9 @@ test.describe("2 player standard mode", () => {
 
     await player1.waitForURL("/dashboard");
     await player1.waitForTimeout(1000);
-    const player1Dashboard = new DashboardPage(player1);
-    const player1Total = await player1Dashboard.getTotal();
-    const player1Win = await player1Dashboard.getWin();
-    await player2.waitForURL("/dashboard");
-    await player2.waitForTimeout(1000);
-    const player2Dashboard = new DashboardPage(player2);
-    const player2Total = await player2Dashboard.getTotal();
-    const player2Win = await player2Dashboard.getWin();
-    expect(player1Total).toBe(player1Stats.total + 1);
-    expect(player1Win).toBeLessThan(player1Stats.win);
-    expect(player2Total).toBe(player2Stats.total + 1);
-    expect(player2Win).not.toBeLessThanOrEqual(player2Stats.win);
+
+    await assertHasLost(player1, player1Stats);
+    await assertHasWon(player2, player2Stats);
   });
 
   test("Non describer leaves game room", async () => {
@@ -117,18 +106,9 @@ test.describe("2 player standard mode", () => {
 
     await player2.waitForURL("/dashboard");
     await player2.waitForTimeout(1000);
-    const player2Dashboard = new DashboardPage(player2);
-    const player2Total = await player2Dashboard.getTotal();
-    const player2Win = await player2Dashboard.getWin();
-    await player1.waitForURL("/dashboard");
-    await player1.waitForTimeout(1000);
-    const player1Dashboard = new DashboardPage(player1);
-    const player1Total = await player1Dashboard.getTotal();
-    const player1Win = await player1Dashboard.getWin();
-    expect(player2Total).toBe(player2Stats.total + 1);
-    expect(player2Win).toBeLessThan(player2Stats.win);
-    expect(player1Total).toBe(player1Stats.total + 1);
-    expect(player1Win).not.toBeLessThanOrEqual(player1Stats.win);
+
+    await assertHasWon(player1, player1Stats);
+    await assertHasLost(player2, player2Stats);
   });
 
   test("Players exchange messages", async () => {
@@ -199,18 +179,9 @@ test.describe("2 player standard mode", () => {
 
     await player1.waitForURL("/dashboard");
     await player1.waitForTimeout(1000);
-    const player1Dashboard = new DashboardPage(player1);
-    const player1Total = await player1Dashboard.getTotal();
-    const player1Win = await player1Dashboard.getWin();
-    await player2.waitForURL("/dashboard");
-    await player2.waitForTimeout(1000);
-    const player2Dashboard = new DashboardPage(player2);
-    const player2Total = await player2Dashboard.getTotal();
-    const player2Win = await player2Dashboard.getWin();
-    expect(player1Total).toBe(player1Stats.total + 1);
-    expect(player1Win).toBeLessThan(player1Stats.win);
-    expect(player2Total).toBe(player2Stats.total + 1);
-    expect(player2Win).not.toBeLessThanOrEqual(player2Stats.win);
+
+    await assertHasLost(player1, player1Stats);
+    await assertHasWon(player2, player2Stats);
   });
 
   test("Playthrough", async () => {
@@ -238,17 +209,13 @@ test.describe("2 player standard mode", () => {
     await confirmMessage.waitFor({ state: "visible" });
     await player1Game.sendMessage("This is the correct answer for easy words.");
 
+    await assertRank(player1, 1);
+    await assertRank(player2, 1);
+
     await player1.waitForURL("/dashboard");
     await player1.waitForTimeout(1000);
-    const player1Dashboard = new DashboardPage(player1);
-    const player1Total = await player1Dashboard.getTotal();
-    const player1Win = await player1Dashboard.getWin();
-    const player2Dashboard = new DashboardPage(player2);
-    const player2Total = await player2Dashboard.getTotal();
-    const player2Win = await player2Dashboard.getWin();
-    expect(player1Total).toBe(player1Stats.total + 1);
-    expect(player1Win).not.toBeLessThanOrEqual(player2Stats.win);
-    expect(player2Total).toBe(player2Stats.total + 1);
-    expect(player2Win).not.toBeLessThanOrEqual(player2Stats.win);
+
+    await assertHasWon(player1, player1Stats);
+    await assertHasWon(player2, player2Stats);
   });
 });

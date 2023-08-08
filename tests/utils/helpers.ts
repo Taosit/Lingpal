@@ -1,6 +1,7 @@
-import { Page } from "@playwright/test";
+import { Page, expect } from "@playwright/test";
 import LoginPage from "../pages/login";
 import SettingsPage from "../pages/settings";
+import DashboardPage from "../pages/dashboard";
 
 export const getSetting = (
   mode: "standard" | "relaxed",
@@ -44,4 +45,42 @@ export const logInAndChooseSettings = async (
   const settingsPage = new SettingsPage(page);
   await settingsPage.setSettings(settings);
   return { total, win };
+};
+
+export const assertRank = async (page: Page, rank: number) => {
+  const confirmMessage = page.getByText(/Game is over/);
+  await confirmMessage.waitFor({ state: "visible" });
+  expect(confirmMessage).toContainText(`your rank is ${rank}`);
+};
+
+export const assertHasWon = async (
+  page: Page,
+  startingStats: {
+    total: number;
+    win: number;
+  }
+) => {
+  const playerDashboard = new DashboardPage(page);
+  const playerTotal = await playerDashboard.getTotal();
+  const playerWin = await playerDashboard.getWin();
+  expect(playerTotal).toBe(startingStats.total + 1);
+  expect(playerWin).not.toBeLessThanOrEqual(startingStats.win);
+};
+
+export const assertHasLost = async (
+  page: Page,
+  startingStats: {
+    total: number;
+    win: number;
+  }
+) => {
+  const playerDashboard = new DashboardPage(page);
+  const playerTotal = await playerDashboard.getTotal();
+  const playerWin = await playerDashboard.getWin();
+  expect(playerTotal).toBe(startingStats.total + 1);
+  if (startingStats.win > 0) {
+    expect(playerWin).toBeLessThan(startingStats.win);
+  } else {
+    expect(playerWin).toBe(startingStats.win);
+  }
 };

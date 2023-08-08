@@ -1,6 +1,12 @@
 import { test, Page } from "@playwright/test";
 import GamePage from "./pages/game";
-import { getSetting, logInAndChooseSettings } from "./utils/helpers";
+import {
+  assertHasLost,
+  assertHasWon,
+  assertRank,
+  getSetting,
+  logInAndChooseSettings,
+} from "./utils/helpers";
 import { credentials } from "./data";
 import SettingsPage from "./pages/settings";
 
@@ -10,12 +16,17 @@ test.describe("4 player standard mode", () => {
   let player3: Page;
   let player4: Page;
 
+  let player1Stats: { total: number; win: number };
+  let player2Stats: { total: number; win: number };
+  let player3Stats: { total: number; win: number };
+  let player4Stats: { total: number; win: number };
+
   test.beforeEach(async ({ browser }) => {
     player1 = await (await browser.newContext()).newPage();
     player2 = await (await browser.newContext()).newPage();
     player3 = await (await browser.newContext()).newPage();
     player4 = await (await browser.newContext()).newPage();
-    await Promise.all([
+    const [stats1, stats2, stats3, stats4] = await Promise.all([
       logInAndChooseSettings(
         player1,
         credentials.user1,
@@ -37,6 +48,11 @@ test.describe("4 player standard mode", () => {
         getSetting("standard", "easy", "text")
       ),
     ]);
+    player1Stats = stats1;
+    player2Stats = stats2;
+    player3Stats = stats3;
+    player4Stats = stats4;
+
     const player1Settings = new SettingsPage(player1);
     await player1Settings.clickPlay();
     const player2Settings = new SettingsPage(player2);
@@ -88,9 +104,17 @@ test.describe("4 player standard mode", () => {
     await confirmMessage.waitFor({ state: "visible" });
     await player2Game.sendMessage("This is the correct answer for easy words.");
 
-    await player1.waitForTimeout(3000);
-    await player2.waitForTimeout(3000);
-    await player3.waitForTimeout(3000);
-    await player4.waitForTimeout(3000);
+    await assertRank(player1, 3);
+    await assertRank(player2, 1);
+    await assertRank(player3, 1);
+    await assertRank(player4, 3);
+
+    await player1.waitForURL("/dashboard");
+    await player1.waitForTimeout(1000);
+
+    await assertHasLost(player1, player1Stats);
+    await assertHasWon(player2, player2Stats);
+    await assertHasWon(player3, player3Stats);
+    await assertHasLost(player4, player4Stats);
   });
 });
