@@ -35,7 +35,9 @@ export const logInAndChooseSettings = async (
     (await page.getByTestId("total").textContent()) as string
   );
 
-  const win = parseInt((await page.getByTestId("win").textContent()) as string);
+  const win = parseFloat(
+    (await page.getByTestId("win").textContent()) as string
+  );
 
   await page.getByRole("button", { name: "Play" }).click();
 

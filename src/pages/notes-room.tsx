@@ -59,7 +59,7 @@ export default function NoteRoom() {
       const win =
         numberOfPlayers === 1
           ? true
-          : players[user!.id].rank <= numberOfPlayers / 2;
+          : players[user!.id].rank <= Math.ceil(numberOfPlayers / 2);
       const advanced = settings.level === "hard";
       const data = { win, advanced };
 

@@ -176,10 +176,9 @@ export const useRegisterGameRoomListeners = ({
       const win =
         numberOfPlayers === 1
           ? true
-          : players[user!.id].rank <= numberOfPlayers / 2;
+          : players[user!.id].rank <= Math.ceil(numberOfPlayers / 2);
       const advanced = level === "hard";
       const data = { win, advanced };
-      console.log(numberOfPlayers, "players", data);
 
       if (mode === "standard") {
         updateStats(data);
