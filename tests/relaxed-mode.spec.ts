@@ -1,7 +1,7 @@
 import { test, Page, expect } from "@playwright/test";
 import GamePage from "./pages/game";
 import { getSetting, logInAndChooseSettings } from "./utils/helpers";
-import { credentials } from "./data";
+import { credentials } from "./data/data";
 import SettingsPage from "./pages/settings";
 import DashboardPage from "./pages/dashboard";
 import NotesPage from "./pages/notes";

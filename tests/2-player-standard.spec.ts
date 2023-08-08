@@ -1,7 +1,7 @@
 import { test, Page, expect } from "@playwright/test";
 import GamePage from "./pages/game";
 import NotesPage from "./pages/notes";
-import { credentials } from "./data";
+import { credentials } from "./data/data";
 import {
   assertHasLost,
   assertHasWon,

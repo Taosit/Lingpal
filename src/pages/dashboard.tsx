@@ -88,7 +88,10 @@ export default function Dashboard() {
         </button>
       </div>
       {error.hasError && (
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-8 py-2 px-8 bg-transparent-50 text-red-800 font-semibold rounded">
+        <div
+          data-testid="error-message"
+          className="absolute left-1/2 -translate-x-1/2 bottom-8 py-2 px-8 bg-transparent-50 text-red-800 font-semibold rounded"
+        >
           {error.message || ""}
         </div>
       )}

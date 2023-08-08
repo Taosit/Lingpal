@@ -1,6 +1,6 @@
 import { test, Page, expect } from "@playwright/test";
 import { getSetting, logInAndChooseSettings } from "./utils/helpers";
-import { credentials } from "./data";
+import { credentials } from "./data/data";
 import SettingsPage from "./pages/settings";
 
 test.describe("multi-room", () => {

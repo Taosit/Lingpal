@@ -7,7 +7,7 @@ import {
   getSetting,
   logInAndChooseSettings,
 } from "./utils/helpers";
-import { credentials } from "./data";
+import { credentials } from "./data/data";
 import SettingsPage from "./pages/settings";
 
 test.describe("3 player standard mode", () => {

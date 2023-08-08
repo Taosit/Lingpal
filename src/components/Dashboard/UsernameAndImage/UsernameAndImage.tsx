@@ -52,9 +52,8 @@ export const UsernameAndImage = ({ showErrorMessage }: Props) => {
 
   const uploadImage = async (imageFile: File | Blob | undefined) => {
     if (!imageFile) return;
-    const allowedType = ["image/jpeg", "image/jpg", "image/png"];
-    if (!allowedType.includes(imageFile.type)) {
-      showErrorMessage("Only .jpg, .jpeg, and .png files are allowed");
+    if (!imageFile.type.includes("image")) {
+      showErrorMessage("Only image files are allowed");
       return;
     }
     if (imageFile.size > 10000) {
@@ -106,7 +105,7 @@ export const UsernameAndImage = ({ showErrorMessage }: Props) => {
             className="w-32 px-2 py-1 rounded bg-color1-lighter shadow-inner-light text-neutral-700"
           />
           <label id="save-name" className="hidden">
-            Edit
+            Done
           </label>
           <NextImage
             onClick={() => changeUsername(username)}
@@ -122,7 +121,7 @@ export const UsernameAndImage = ({ showErrorMessage }: Props) => {
         </div>
       ) : (
         <div className="relative mb-1 text-lg text-semibold rounded bg-[#D9D9D9B0] h-8 px-2 py-1 text-color1-dark flex gap-2">
-          <p>{loading || !user ? "" : user.username}</p>
+          <p data-testid="username">{loading || !user ? "" : user.username}</p>
           <label id="change-name" className="hidden">
             Edit
           </label>
