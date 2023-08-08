@@ -1,4 +1,4 @@
-import { test, Page } from "@playwright/test";
+import { test, Page, expect } from "@playwright/test";
 import { getSetting, logInAndChooseSettings } from "./utils/helpers";
 import { credentials } from "./data";
 import SettingsPage from "./pages/settings";
@@ -29,6 +29,8 @@ test.describe("multi-room", () => {
   });
 
   test("2 simultaneous games of the same setting", async ({ browser }) => {
+    await player1.getByRole("button", { name: "Ready" }).click();
+    await player2.getByRole("button", { name: "Ready" }).click();
     const player3 = await (await browser.newContext()).newPage();
     const player4 = await (await browser.newContext()).newPage();
 
@@ -49,16 +51,19 @@ test.describe("multi-room", () => {
     const player4Settings = new SettingsPage(player4);
     await player4Settings.clickPlay();
 
-    await player1.getByRole("button", { name: "Ready" }).click();
-    await player2.getByRole("button", { name: "Ready" }).click();
-
     await player3.getByRole("button", { name: "Ready" }).click();
     await player4.getByRole("button", { name: "Ready" }).click();
 
-    await player1.waitForTimeout(15_000);
+    await player1.waitForURL("/game-room");
+    const firstGroup = await player1.getByTestId("player-avatar").all();
+    expect(firstGroup.length).toBe(2);
+
+    await player3.waitForURL("/game-room");
+    const secondGroup = await player3.getByTestId("player-avatar").all();
+    expect(secondGroup.length).toBe(2);
   });
 
-  test("Simultaneous player joining in 2 simulteneous games of the same setting", async ({
+  test("Players Simultaneously join in 2 games of the same setting", async ({
     browser,
   }) => {
     const player3 = await (await browser.newContext()).newPage();
@@ -115,10 +120,16 @@ test.describe("multi-room", () => {
     const player8Settings = new SettingsPage(player8);
     await player8Settings.clickPlay();
 
-    await player1.waitForTimeout(15_000);
+    await player1.waitForURL("/game-room");
+    const firstGroup = await player1.getByTestId("player-avatar").all();
+    expect(firstGroup.length).toBe(4);
+
+    await player5.waitForURL("/game-room");
+    const secondGroup = await player5.getByTestId("player-avatar").all();
+    expect(secondGroup.length).toBe(4);
   });
 
-  test("simultaneous games of different settings", async ({ browser }) => {
+  test.only("simultaneous games of different settings", async ({ browser }) => {
     const player3 = await (await browser.newContext()).newPage();
     const player4 = await (await browser.newContext()).newPage();
     const player5 = await (await browser.newContext()).newPage();
@@ -165,6 +176,16 @@ test.describe("multi-room", () => {
     await player5.getByRole("button", { name: "Ready" }).click();
     await player6.getByRole("button", { name: "Ready" }).click();
 
-    await player1.waitForTimeout(15_000);
+    await player1.waitForURL("/game-room");
+    const firstGroup = await player1.getByTestId("player-avatar").all();
+    expect(firstGroup.length).toBe(2);
+
+    await player3.waitForURL("/game-room");
+    const secondGroup = await player3.getByTestId("player-avatar").all();
+    expect(secondGroup.length).toBe(2);
+
+    await player5.waitForURL("/game-room");
+    const thirdGroup = await player5.getByTestId("player-avatar").all();
+    expect(thirdGroup.length).toBe(2);
   });
 });

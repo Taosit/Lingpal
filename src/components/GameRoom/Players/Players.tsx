@@ -27,6 +27,7 @@ export const Players = () => {
           >
             <div className="h-10 w-10 sm:h-16 sm:w-16 rounded-full overflow-clip mr-1">
               <CldImage
+                data-testid="player-avatar"
                 className="rounded-full object-contain object-center"
                 width="100"
                 height="100"
