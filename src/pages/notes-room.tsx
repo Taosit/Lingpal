@@ -20,7 +20,7 @@ export default function NoteRoom() {
   const { settings } = useSettingStore();
 
   const { socket } = useSocketContext();
-  const { user, updatePlayerScore } = useAuthStore();
+  const { user, updateUserScore } = useAuthStore();
 
   const { notes, activeNote, setActiveNoteIndex, saveNote } = useNotes();
   const updateStats = useUpdateStats();
@@ -80,7 +80,9 @@ export default function NoteRoom() {
 
   const leaveGame = () => {
     socket?.disconnect();
-    updatePlayerScore({ total: 1 });
+    if (settings.mode === "standard") {
+      updateUserScore({ total: 1 });
+    }
     router.push("/dashboard");
   };
 

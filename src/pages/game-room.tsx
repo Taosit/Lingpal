@@ -38,11 +38,12 @@ export default function GameRoom() {
       shallow
     );
 
-  const { loading, user, setUser } = useAuthStore(
+  const { loading, user, setUser, updateUserScore } = useAuthStore(
     (store) => ({
       loading: store.loading,
       user: store.user,
       setUser: store.setUser,
+      updateUserScore: store.updateUserScore,
     }),
     shallow
   );
@@ -137,7 +138,9 @@ export default function GameRoom() {
     clearMessages();
     if (!user) return;
     const userCopy = { ...user };
-    setUser({ ...userCopy, total: userCopy.total + 1 });
+    if (mode === "standard") {
+      updateUserScore({ total: 1 });
+    }
     router.push("/dashboard");
   };
 

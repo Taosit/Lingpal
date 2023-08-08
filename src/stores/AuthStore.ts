@@ -7,7 +7,7 @@ type AuthState = {
   setLoading: (newLoading: boolean) => void;
   setUser: (newUser: Player | null) => void;
   setAccessToken: (newAccessToken: string) => void;
-  updatePlayerScore: (updates: {
+  updateUserScore: (updates: {
     total?: number;
     win?: number;
     advanced?: number;
@@ -22,7 +22,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   setUser: (newUser: Player | null) => set({ user: newUser }),
   setAccessToken: (newAccessToken: string) =>
     set({ accessToken: newAccessToken }),
-  updatePlayerScore: (updates: {
+  updateUserScore: (updates: {
     total?: number;
     win?: number;
     advanced?: number;

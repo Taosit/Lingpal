@@ -129,7 +129,7 @@ test.describe("multi-room", () => {
     expect(secondGroup.length).toBe(4);
   });
 
-  test.only("simultaneous games of different settings", async ({ browser }) => {
+  test("simultaneous games of different settings", async ({ browser }) => {
     const player3 = await (await browser.newContext()).newPage();
     const player4 = await (await browser.newContext()).newPage();
     const player5 = await (await browser.newContext()).newPage();
