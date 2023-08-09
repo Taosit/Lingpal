@@ -21,6 +21,7 @@ export const useVoiceDescriber = () => {
   const [sendingPeer, setSendingPeer] = useState<Peer.Instance | null>(null);
   const [userStream, setUserStream] = useState<MediaStream | null>(null);
   const [isMuted, setIsMuted] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   const isUserDescriber = useIsUserDescriber();
 
@@ -83,6 +84,7 @@ export const useVoiceDescriber = () => {
       });
 
       peer.on("signal", (signal) => {
+        console.log("%c<--- voice-stream", "color: #4109de; font-weight: 600");
         socket?.emit("voice-stream", {
           receiverId: id,
           signal,
@@ -115,6 +117,11 @@ export const useVoiceDescriber = () => {
       if (!peers) return;
       setReceivingPeers(peers);
       socket?.on("receive-return-signal", ({ receiverId, signal }) => {
+        console.log(
+          "%c---> receive-return-signal",
+          "color: #039c13; font-weight: 600"
+        );
+        setIsLoading(false);
         const peer = peers[receiverId];
         peer.signal(signal);
       });
@@ -124,6 +131,10 @@ export const useVoiceDescriber = () => {
 
   const acceptPeerConnection = useCallback(() => {
     socket?.on("receive-voice-stream", ({ senderSocketId, signal }) => {
+      console.log(
+        "%c---> receive-voice-stream",
+        "color: #039c13; font-weight: 600"
+      );
       const peer = new Peer({
         initiator: false,
         trickle: false,
@@ -133,6 +144,7 @@ export const useVoiceDescriber = () => {
       }
       peer.signal(signal);
       peer.on("signal", (signal) => {
+        console.log("%c<--- return-signal", "color: #4109de; font-weight: 600");
         socket?.emit("return-signal", {
           senderSocketId,
           signal,
@@ -175,6 +187,7 @@ export const useVoiceDescriber = () => {
     mute,
     unmute,
     isMuted,
+    isLoading,
     initiatePeerConnection,
     acceptPeerConnection,
     destroyPeerConnection,

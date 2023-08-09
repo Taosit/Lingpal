@@ -38,11 +38,10 @@ export default function GameRoom() {
       shallow
     );
 
-  const { loading, user, setUser, updateUserScore } = useAuthStore(
+  const { loading, user, updateUserScore } = useAuthStore(
     (store) => ({
       loading: store.loading,
       user: store.user,
-      setUser: store.setUser,
       updateUserScore: store.updateUserScore,
     }),
     shallow
@@ -50,7 +49,7 @@ export default function GameRoom() {
 
   const router = useRouter();
 
-  const mode = useSettingStore((store) => store.settings.mode);
+  const { mode, level } = useSettingStore((store) => store.settings);
   const TURN_TIME =
     mode === "standard" ? TURN_TIME_STANDARD : TURN_TIME_RELAXED;
 
@@ -61,6 +60,7 @@ export default function GameRoom() {
   const {
     mute,
     unmute,
+    isLoading,
     isMuted,
     initiatePeerConnection,
     acceptPeerConnection,
@@ -137,9 +137,9 @@ export default function GameRoom() {
     destroyPeerConnection();
     clearMessages();
     if (!user) return;
-    const userCopy = { ...user };
     if (mode === "standard") {
-      updateUserScore({ total: 1 });
+      const advanced = level === "hard" ? 1 : 0;
+      updateUserScore({ total: 1, advanced });
     }
     router.push("/dashboard");
   };
@@ -176,6 +176,7 @@ export default function GameRoom() {
               <ChatBox
                 setDisplay={setDisplay}
                 showFeedbackField={showFeedbackField}
+                isLoading={isLoading}
                 isMuted={isMuted}
                 mute={mute}
                 unmute={unmute}
@@ -186,6 +187,7 @@ export default function GameRoom() {
             <ChatBox
               setDisplay={setDisplay}
               showFeedbackField={showFeedbackField}
+              isLoading={isLoading}
               isMuted={isMuted}
               mute={mute}
               unmute={unmute}

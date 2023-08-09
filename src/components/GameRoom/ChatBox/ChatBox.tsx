@@ -10,6 +10,7 @@ import { useSettingStore } from "@/stores/SettingStore";
 type Props = {
   setDisplay: (display: "notes" | "chatbox") => void;
   showFeedbackField: boolean;
+  isLoading: boolean;
   isMuted: boolean;
   mute: () => void;
   unmute: () => void;
@@ -19,6 +20,7 @@ const ChatBox = ({
   setDisplay,
   showFeedbackField,
   isMuted,
+  isLoading,
   mute,
   unmute,
 }: Props) => {
@@ -82,16 +84,17 @@ const ChatBox = ({
               <div className="flex items-center gap-2">
                 <div
                   className={`w-2 h-2 rounded-full ${
-                    isMuted ? "bg-slate-400" : "bg-green-500"
+                    isLoading || isMuted ? "bg-slate-400" : "bg-green-500"
                   }`}
                 />
                 <p className="text-lg w-24">
-                  {isMuted ? "Muted" : "Speaking..."}
+                  {isLoading ? "Loading" : isMuted ? "Muted" : "Speaking..."}
                 </p>
               </div>
               <button
                 className="w-24 py-1 rounded-xl bg-red-700 text-white sm:text-xl disabled:bg-blue-200"
-                onClick={() => (isMuted ? unmute() : mute())}
+                onClick={isMuted ? unmute : mute}
+                disabled={isLoading}
               >
                 {isMuted ? "Unmute" : "Mute"}
               </button>
@@ -117,7 +120,7 @@ const ChatBox = ({
             )}
             <button
               className="mb-2 px-6 py-1 rounded-xl bg-blue-500 text-white sm:text-xl disabled:bg-blue-200"
-              onClick={() => sendMessage()}
+              onClick={sendMessage}
             >
               Send
             </button>

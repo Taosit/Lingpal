@@ -17,7 +17,7 @@ import { useSettingStore } from "@/stores/SettingStore";
 
 export default function NoteRoom() {
   const { players, setPlayers, setDescriberOrder, round } = useGameStore();
-  const { settings } = useSettingStore();
+  const { mode, level } = useSettingStore((store) => store.settings);
 
   const { socket } = useSocketContext();
   const { user, updateUserScore } = useAuthStore();
@@ -60,15 +60,15 @@ export default function NoteRoom() {
         numberOfPlayers === 1
           ? true
           : players[user!.id].rank <= Math.ceil(numberOfPlayers / 2);
-      const advanced = settings.level === "hard";
+      const advanced = level === "hard";
       const data = { win, advanced };
 
-      if (settings.mode === "standard") {
+      if (mode === "standard") {
         updateStats(data);
       }
       router.push("/dashboard");
     },
-    [router, settings.level, settings.mode, updateStats, user]
+    [router, level, mode, updateStats, user]
   );
   useRegisterSocketListener("game-over", gameOverListener);
 
@@ -80,8 +80,9 @@ export default function NoteRoom() {
 
   const leaveGame = () => {
     socket?.disconnect();
-    if (settings.mode === "standard") {
-      updateUserScore({ total: 1 });
+    if (mode === "standard") {
+      const advanced = level === "hard" ? 1 : 0;
+      updateUserScore({ total: 1, advanced });
     }
     router.push("/dashboard");
   };
