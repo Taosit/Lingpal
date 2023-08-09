@@ -36,7 +36,6 @@ const PrivateRoute = ({ children }: PropsWithChildren) => {
     if (!user) {
       router.push("/login");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, router, user]);
 
   return <>{children}</>;

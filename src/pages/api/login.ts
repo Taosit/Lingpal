@@ -23,6 +23,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (!rawUser || !match) {
     return res.status(401).json({ message: "Incorrect credentials" });
   }
+  if (
+    rawUser.lastLogin &&
+    new Date().getTime() < rawUser.lastLogin.getTime() + 1000 * 60 * 60 * 2
+  ) {
+    return res
+      .status(409)
+      .json({ message: "This account is already logged in" });
+  }
 
   const accessToken = jwt.sign(
     { email: email },
@@ -36,7 +44,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   );
   await db
     .collection("users")
-    .updateOne({ email }, { $set: { refreshToken: newRefreshToken } });
+    .updateOne(
+      { email },
+      { $set: { refreshToken: newRefreshToken, lastLogin: new Date() } }
+    );
   res.setHeader(
     "Set-Cookie",
     cookie.serialize("jwt", newRefreshToken, {

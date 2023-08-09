@@ -46,6 +46,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     total: 0,
     win: 0,
     advanced: 0,
+    lastLogin: new Date(),
     avatar: "nruwutqaihxyl7sq6ilm",
   };
   await db.collection("users").insertOne(user);

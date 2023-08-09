@@ -16,6 +16,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const { db } = await connectToDB();
   const user = await db.collection("users").findOne({ refreshToken });
+  await db
+    .collection("users")
+    .updateOne({ refreshToken }, { $set: { lastLogin: new Date() } });
   if (!user) {
     return res.status(401).json({ message: "Unable to refresh token" });
   }

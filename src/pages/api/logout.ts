@@ -16,7 +16,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (user.refreshToken) {
     await db
       .collection("users")
-      .updateOne({ refreshToken }, { $set: { refreshToken: "" } });
+      .updateOne(
+        { refreshToken },
+        { $set: { refreshToken: "", lastLogin: null } }
+      );
   }
   return res.status(204).json({ message: "You're logged out" });
 };
