@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRegisterSocketListener } from "./useRegisterSocketListener";
 import { useGameStore } from "@/stores/GameStore";
 import { shallow } from "zustand/shallow";
@@ -62,6 +62,7 @@ export const useRegisterGameRoomListeners = ({
     }),
     shallow
   );
+  const [isGameOver, setIsGameOver] = useState(false);
 
   const handlePlayerChange = useCallback(
     (players: Record<string, Player>) => {
@@ -186,6 +187,7 @@ export const useRegisterGameRoomListeners = ({
 
   const gameOverListener = useCallback(
     (players: SocketEvent["game-over"]) => {
+      setIsGameOver(true);
       if (describerMethod === "voice") {
         closeAudio();
       }
@@ -208,6 +210,8 @@ export const useRegisterGameRoomListeners = ({
     },
     [
       clearMessages,
+      closeAudio,
+      describerMethod,
       destroyPeerConnection,
       level,
       mode,
@@ -217,4 +221,6 @@ export const useRegisterGameRoomListeners = ({
     ]
   );
   useRegisterSocketListener("game-over", gameOverListener);
+
+  return { isGameOver };
 };

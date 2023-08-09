@@ -12,6 +12,7 @@ type Props = {
   showFeedbackField: boolean;
   isLoading: boolean;
   isMuted: boolean;
+  isGameOver: boolean;
   mute: () => void;
   unmute: () => void;
 };
@@ -21,6 +22,7 @@ const ChatBox = ({
   showFeedbackField,
   isMuted,
   isLoading,
+  isGameOver,
   mute,
   unmute,
 }: Props) => {
@@ -30,7 +32,8 @@ const ChatBox = ({
   const isUserDescriber = useIsUserDescriber();
   const describerMethod = useSettingStore((store) => store.settings.describer);
 
-  const showVoicePanel = describerMethod === "voice" && isUserDescriber;
+  const showVoicePanel =
+    describerMethod === "voice" && isUserDescriber && !isGameOver;
 
   const windowSize = useWindowSize();
 
@@ -87,8 +90,12 @@ const ChatBox = ({
                     isLoading || isMuted ? "bg-slate-400" : "bg-green-500"
                   }`}
                 />
-                <p className="text-lg w-24">
-                  {isLoading ? "Loading..." : isMuted ? "Muted" : "Speaking..."}
+                <p className="text-lg w-28">
+                  {isLoading
+                    ? "Connecting..."
+                    : isMuted
+                    ? "Muted"
+                    : "Speaking..."}
                 </p>
               </div>
               <button

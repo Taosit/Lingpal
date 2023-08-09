@@ -89,6 +89,7 @@ export default function GameRoom() {
   const endTurn = useCallback(async () => {
     setDisplay("chatbox");
     if (mode === "relaxed") {
+      destroyPeerConnection();
       setShowFeedbackField(true);
       await new Promise((res) => setTimeout(res, FEEDBACK_TIME * 1000));
       if (isUserDescriber) {
@@ -98,10 +99,12 @@ export default function GameRoom() {
     }
 
     if (isUserDescriber) {
-      await new Promise((res) => setTimeout(res, 3000));
+      if (mode === "standard") {
+        await new Promise((res) => setTimeout(res, 3000));
+      }
       emitSocketEvent(socket, "update-turn");
     }
-  }, [isUserDescriber, mode, socket]);
+  }, [destroyPeerConnection, isUserDescriber, mode, socket]);
 
   const { formattedTime, startTimer } = useCountdownTimer(
     TURN_TIME,
@@ -114,7 +117,7 @@ export default function GameRoom() {
     }
   );
 
-  useRegisterGameRoomListeners({
+  const { isGameOver } = useRegisterGameRoomListeners({
     startTimer,
     endTurn,
     closeAudio,
@@ -187,6 +190,7 @@ export default function GameRoom() {
                 showFeedbackField={showFeedbackField}
                 isLoading={isLoading}
                 isMuted={isMuted}
+                isGameOver={isGameOver}
                 mute={mute}
                 unmute={unmute}
               />
@@ -198,6 +202,7 @@ export default function GameRoom() {
               showFeedbackField={showFeedbackField}
               isLoading={isLoading}
               isMuted={isMuted}
+              isGameOver={isGameOver}
               mute={mute}
               unmute={unmute}
             />
