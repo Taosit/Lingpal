@@ -7,7 +7,7 @@ export const useLogIn = () => {
   const setUser = useAuthStore((state) => state.setUser);
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
 
-  const [email, setEmail] = useState("test@test.com");
+  const [email, setEmail] = useState("test1@test.com");
   const [password, setPassword] = useState("test123");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
