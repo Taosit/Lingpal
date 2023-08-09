@@ -49,7 +49,11 @@ export default function GameRoom() {
 
   const router = useRouter();
 
-  const { mode, level } = useSettingStore((store) => store.settings);
+  const {
+    mode,
+    level,
+    describer: describerMethod,
+  } = useSettingStore((store) => store.settings);
   const TURN_TIME =
     mode === "standard" ? TURN_TIME_STANDARD : TURN_TIME_RELAXED;
 
@@ -62,6 +66,7 @@ export default function GameRoom() {
     unmute,
     isLoading,
     isMuted,
+    closeAudio,
     initiatePeerConnection,
     acceptPeerConnection,
     destroyPeerConnection,
@@ -112,6 +117,7 @@ export default function GameRoom() {
   useRegisterGameRoomListeners({
     startTimer,
     endTurn,
+    closeAudio,
     initiatePeerConnection,
     acceptPeerConnection,
     destroyPeerConnection,
@@ -133,6 +139,9 @@ export default function GameRoom() {
   }, [addMessage, players, router]);
 
   const leaveGame = () => {
+    if (describerMethod === "voice") {
+      closeAudio();
+    }
     socket?.disconnect();
     destroyPeerConnection();
     clearMessages();

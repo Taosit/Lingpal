@@ -88,7 +88,7 @@ const ChatBox = ({
                   }`}
                 />
                 <p className="text-lg w-24">
-                  {isLoading ? "Loading" : isMuted ? "Muted" : "Speaking..."}
+                  {isLoading ? "Loading..." : isMuted ? "Muted" : "Speaking..."}
                 </p>
               </div>
               <button

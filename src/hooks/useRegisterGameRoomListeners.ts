@@ -12,6 +12,7 @@ import { useSocketContext } from "@/contexts/SocketContext";
 export const useRegisterGameRoomListeners = ({
   startTimer,
   endTurn,
+  closeAudio,
   initiatePeerConnection,
   acceptPeerConnection,
   destroyPeerConnection,
@@ -19,6 +20,7 @@ export const useRegisterGameRoomListeners = ({
 }: {
   startTimer: () => void;
   endTurn: () => void;
+  closeAudio: () => void;
   initiatePeerConnection: (players: Record<string, Player>) => void;
   acceptPeerConnection: () => void;
   destroyPeerConnection: () => void;
@@ -52,10 +54,11 @@ export const useRegisterGameRoomListeners = ({
   const user = useAuthStore((store) => store.user);
   const thisPlayer = storePlayers[user?.id ?? ""];
 
-  const { mode, level } = useSettingStore(
+  const { mode, level, describerMethod } = useSettingStore(
     (store) => ({
       mode: store.settings.mode,
       level: store.settings.level,
+      describerMethod: store.settings.describer,
     }),
     shallow
   );
@@ -123,10 +126,21 @@ export const useRegisterGameRoomListeners = ({
       } else {
         setRound(nextRound);
         setDescriberOrder(nextDesc);
+        if (describerMethod === "voice") {
+          closeAudio();
+        }
         router.push("/notes-room");
       }
     },
-    [round, router, setDescriberOrder, setRound, startTimer]
+    [
+      closeAudio,
+      describerMethod,
+      round,
+      router,
+      setDescriberOrder,
+      setRound,
+      startTimer,
+    ]
   );
 
   const correctAnswerListener = useCallback(
@@ -172,6 +186,9 @@ export const useRegisterGameRoomListeners = ({
 
   const gameOverListener = useCallback(
     (players: SocketEvent["game-over"]) => {
+      if (describerMethod === "voice") {
+        closeAudio();
+      }
       const numberOfPlayers = Object.keys(players).length;
       const win =
         numberOfPlayers === 1

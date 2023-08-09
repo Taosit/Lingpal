@@ -1,7 +1,7 @@
 import { useSocketContext } from "@/contexts/SocketContext";
 import { useGameStore } from "@/stores/GameStore";
 import { useSettingStore } from "@/stores/SettingStore";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Peer from "simple-peer";
 import { useIsUserDescriber } from "./useIsUserDescriber";
 import { useAuthStore } from "@/stores/AuthStore";
@@ -51,6 +51,12 @@ export const useVoiceDescriber = () => {
       track.enabled = true;
     });
     setIsMuted(false);
+  }, [userStream]);
+
+  const closeAudio = useCallback(() => {
+    userStream?.getTracks().forEach((track) => track.stop());
+    describerAudio.current?.pause();
+    describerAudio.current?.removeAttribute("src");
   }, [userStream]);
 
   const destroyPeerConnection = useCallback(() => {
@@ -188,6 +194,7 @@ export const useVoiceDescriber = () => {
     unmute,
     isMuted,
     isLoading,
+    closeAudio,
     initiatePeerConnection,
     acceptPeerConnection,
     destroyPeerConnection,
