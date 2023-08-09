@@ -51,8 +51,8 @@ test.describe("2 player standard mode", () => {
     await player1.waitForTimeout(1000);
     await player1Notes.quit();
 
-    await player1.waitForURL("/dashboard");
-    await player1.waitForTimeout(1000);
+    await player2.waitForURL("/dashboard");
+    await player2.waitForTimeout(1000);
 
     await assertHasLost(player1, player1Stats);
     await assertHasWon(player2, player2Stats);
@@ -87,8 +87,8 @@ test.describe("2 player standard mode", () => {
     await confirmMessage.waitFor({ state: "visible" });
     expect(confirmMessage).toContainText("The game is over");
 
-    await player1.waitForURL("/dashboard");
-    await player1.waitForTimeout(1000);
+    await player2.waitForURL("/dashboard");
+    await player2.waitForTimeout(1000);
 
     await assertHasLost(player1, player1Stats);
     await assertHasWon(player2, player2Stats);
@@ -104,8 +104,8 @@ test.describe("2 player standard mode", () => {
     await botMessage.waitFor({ state: "visible" });
     expect(botMessage).toContainText("The game is over");
 
-    await player2.waitForURL("/dashboard");
-    await player2.waitForTimeout(1000);
+    await player1.waitForURL("/dashboard");
+    await player1.waitForTimeout(1000);
 
     await assertHasWon(player1, player1Stats);
     await assertHasLost(player2, player2Stats);
@@ -177,8 +177,8 @@ test.describe("2 player standard mode", () => {
     await player1.waitForTimeout(1000);
     await player1Notes.quit();
 
-    await player1.waitForURL("/dashboard");
-    await player1.waitForTimeout(1000);
+    await player2.waitForURL("/dashboard");
+    await player2.waitForTimeout(1000);
 
     await assertHasLost(player1, player1Stats);
     await assertHasWon(player2, player2Stats);
