@@ -2,6 +2,7 @@ import { test, Page, expect } from "@playwright/test";
 import { getSetting, logInAndChooseSettings } from "./utils/helpers";
 import { credentials } from "./data/data";
 import SettingsPage from "./pages/settings";
+import GamePage from "./pages/game";
 
 test.describe("multi-room", () => {
   let player1: Page;
@@ -26,6 +27,13 @@ test.describe("multi-room", () => {
     await player1Settings.clickPlay();
     const player2Settings = new SettingsPage(player2);
     await player2Settings.clickPlay();
+  });
+
+  test.afterEach(async () => {
+    await player1.waitForURL("/dashboard");
+    await player1.getByRole("button", { name: "Logout" }).click();
+    await player2.waitForURL("/dashboard");
+    await player2.getByRole("button", { name: "Logout" }).click();
   });
 
   test("2 simultaneous games of the same setting", async ({ browser }) => {
@@ -61,6 +69,17 @@ test.describe("multi-room", () => {
     await player3.waitForURL("/game-room");
     const secondGroup = await player3.getByTestId("player-avatar").all();
     expect(secondGroup.length).toBe(2);
+
+    const player1Game = new GamePage(player1);
+    const player3Game = new GamePage(player3);
+
+    await player1Game.quit();
+    await player3Game.quit();
+
+    await player3.waitForURL("/dashboard");
+    await player3.getByRole("button", { name: "Logout" }).click();
+    await player4.waitForURL("/dashboard");
+    await player4.getByRole("button", { name: "Logout" }).click();
   });
 
   test("Players Simultaneously join in 2 games of the same setting", async ({
@@ -127,6 +146,33 @@ test.describe("multi-room", () => {
     await player5.waitForURL("/game-room");
     const secondGroup = await player5.getByTestId("player-avatar").all();
     expect(secondGroup.length).toBe(4);
+
+    const player1Game = new GamePage(player1);
+    const player2Game = new GamePage(player2);
+    const player3Game = new GamePage(player3);
+    const player5Game = new GamePage(player5);
+    const player6Game = new GamePage(player6);
+    const player7Game = new GamePage(player7);
+
+    await player1Game.quit();
+    await player2Game.quit();
+    await player3Game.quit();
+    await player5Game.quit();
+    await player6Game.quit();
+    await player7Game.quit();
+
+    await player3.waitForURL("/dashboard");
+    await player3.getByRole("button", { name: "Logout" }).click();
+    await player4.waitForURL("/dashboard");
+    await player4.getByRole("button", { name: "Logout" }).click();
+    await player5.waitForURL("/dashboard");
+    await player5.getByRole("button", { name: "Logout" }).click();
+    await player6.waitForURL("/dashboard");
+    await player6.getByRole("button", { name: "Logout" }).click();
+    await player7.waitForURL("/dashboard");
+    await player7.getByRole("button", { name: "Logout" }).click();
+    await player8.waitForURL("/dashboard");
+    await player8.getByRole("button", { name: "Logout" }).click();
   });
 
   test("simultaneous games of different settings", async ({ browser }) => {
@@ -187,5 +233,22 @@ test.describe("multi-room", () => {
     await player5.waitForURL("/game-room");
     const thirdGroup = await player5.getByTestId("player-avatar").all();
     expect(thirdGroup.length).toBe(2);
+
+    const player1Game = new GamePage(player1);
+    const player3Game = new GamePage(player3);
+    const player5Game = new GamePage(player5);
+
+    await player1Game.quit();
+    await player3Game.quit();
+    await player5Game.quit();
+
+    await player3.waitForURL("/dashboard");
+    await player3.getByRole("button", { name: "Logout" }).click();
+    await player4.waitForURL("/dashboard");
+    await player4.getByRole("button", { name: "Logout" }).click();
+    await player5.waitForURL("/dashboard");
+    await player5.getByRole("button", { name: "Logout" }).click();
+    await player6.waitForURL("/dashboard");
+    await player6.getByRole("button", { name: "Logout" }).click();
   });
 });

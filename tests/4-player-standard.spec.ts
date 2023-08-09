@@ -63,6 +63,17 @@ test.describe("4 player standard mode", () => {
     await player4Settings.clickPlay();
   });
 
+  test.afterEach(async () => {
+    await player1.waitForURL("/dashboard");
+    await player1.getByRole("button", { name: "Logout" }).click();
+    await player2.waitForURL("/dashboard");
+    await player2.getByRole("button", { name: "Logout" }).click();
+    await player3.waitForURL("/dashboard");
+    await player3.getByRole("button", { name: "Logout" }).click();
+    await player4.waitForURL("/dashboard");
+    await player4.getByRole("button", { name: "Logout" }).click();
+  });
+
   test("No player leaves", async () => {
     test.setTimeout(60000);
     await player1.waitForURL("/game-room");

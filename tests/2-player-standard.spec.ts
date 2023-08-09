@@ -44,6 +44,13 @@ test.describe("2 player standard mode", () => {
     await player2.getByRole("button", { name: "Ready" }).click();
   });
 
+  test.afterEach(async () => {
+    await player1.waitForURL("/dashboard");
+    await player1.getByRole("button", { name: "Logout" }).click();
+    await player2.waitForURL("/dashboard");
+    await player2.getByRole("button", { name: "Logout" }).click();
+  });
+
   test("Player leaves notes room", async () => {
     await player1.bringToFront();
     await player1.waitForURL("/notes-room");

@@ -51,6 +51,15 @@ test.describe("3 player relaxed mode", () => {
     await player3.getByRole("button", { name: "Ready" }).click();
   });
 
+  test.afterEach(async () => {
+    await player1.waitForURL("/dashboard");
+    await player1.getByRole("button", { name: "Logout" }).click();
+    await player2.waitForURL("/dashboard");
+    await player2.getByRole("button", { name: "Logout" }).click();
+    await player3.waitForURL("/dashboard");
+    await player3.getByRole("button", { name: "Logout" }).click();
+  });
+
   test("Players leave notes room", async () => {
     await player1.bringToFront();
     await player1.waitForURL("/notes-room");
