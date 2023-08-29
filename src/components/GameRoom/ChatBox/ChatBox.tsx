@@ -6,6 +6,7 @@ import { RatingArea } from "./RatingArea/RatingArea";
 import { Message } from "./Message/Message";
 import { useIsUserDescriber } from "@/hooks/useIsUserDescriber";
 import { useSettingStore } from "@/stores/SettingStore";
+import { VoicePanel } from "./VoicePanel/VoicePanel";
 
 type Props = {
   setDisplay: (display: "notes" | "chatbox") => void;
@@ -31,9 +32,6 @@ const ChatBox = ({
   const { messages, sendMessage } = useMessages();
   const isUserDescriber = useIsUserDescriber();
   const describerMethod = useSettingStore((store) => store.settings.describer);
-
-  const showVoicePanel =
-    describerMethod === "voice" && isUserDescriber && !isGameOver;
 
   const windowSize = useWindowSize();
 
@@ -82,30 +80,14 @@ const ChatBox = ({
         <RatingArea />
       ) : (
         <>
-          {showVoicePanel && (
-            <div className="w-full flex justify-center items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    isLoading || isMuted ? "bg-slate-400" : "bg-green-500"
-                  }`}
-                />
-                <p className="text-lg w-28">
-                  {isLoading
-                    ? "Connecting..."
-                    : isMuted
-                    ? "Muted"
-                    : "Speaking..."}
-                </p>
-              </div>
-              <button
-                className="w-24 py-1 rounded-xl bg-red-700 text-white sm:text-xl disabled:bg-blue-200"
-                onClick={isMuted ? unmute : mute}
-                disabled={isLoading}
-              >
-                {isMuted ? "Unmute" : "Mute"}
-              </button>
-            </div>
+          {describerMethod === "voice" && (
+            <VoicePanel
+              isMuted={isMuted}
+              isLoading={isLoading}
+              isGameOver={isGameOver}
+              mute={mute}
+              unmute={unmute}
+            />
           )}
           <textarea
             value={inputText}

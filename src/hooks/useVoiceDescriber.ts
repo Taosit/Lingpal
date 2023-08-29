@@ -22,6 +22,7 @@ export const useVoiceDescriber = () => {
   const [userStream, setUserStream] = useState<MediaStream | null>(null);
   const [isMuted, setIsMuted] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [timeUp, setTimeUp] = useState(false);
 
   const isUserDescriber = useIsUserDescriber();
 
@@ -121,6 +122,10 @@ export const useVoiceDescriber = () => {
     (players: Record<string, Player>) => {
       const peers = createPeers(players);
       if (!peers) return;
+      setTimeUp(false);
+      setTimeout(() => {
+        setTimeUp(true);
+      }, 3000);
       setReceivingPeers(peers);
       socket?.on("receive-return-signal", ({ receiverId, signal }) => {
         console.log(
@@ -134,6 +139,20 @@ export const useVoiceDescriber = () => {
     },
     [createPeers, socket]
   );
+
+  useEffect(() => {
+    if (!timeUp) return;
+    if (!isLoading) return;
+    console.log("connection timeout");
+    destroyPeerConnection();
+    initiatePeerConnection(players);
+  }, [
+    destroyPeerConnection,
+    initiatePeerConnection,
+    isLoading,
+    players,
+    timeUp,
+  ]);
 
   const acceptPeerConnection = useCallback(() => {
     socket?.on("receive-voice-stream", ({ senderSocketId, signal }) => {
@@ -160,6 +179,7 @@ export const useVoiceDescriber = () => {
         if (describerAudio.current) {
           describerAudio.current.srcObject = stream;
         }
+        setIsLoading(false);
       });
       setSendingPeer(peer);
     });
