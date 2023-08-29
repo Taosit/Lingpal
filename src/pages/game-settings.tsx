@@ -46,9 +46,10 @@ export default function GameSettings() {
 
   const play = () => {
     const socket = connectSocket();
-    socket.emit("join-room", { settings, player: user! }, (roomId: string) => {
-      navigate("/wait-room");
+    socket.emit("join-room", { settings, player: user! }, (roomId: string, players: Record<string, Player>) => {
+      setPlayers(players);
       setRoomId(roomId);
+      navigate("/wait-room");
     });
   };
 

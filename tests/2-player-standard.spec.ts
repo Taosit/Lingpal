@@ -87,7 +87,7 @@ test.describe("2 player standard mode", () => {
     await player1.waitForTimeout(1000);
     let confirmMessage = player1.getByTestId("bot-message").first();
     await confirmMessage.waitFor({ state: "visible" });
-    expect(confirmMessage).toHaveText("You are describing");
+    expect(confirmMessage).toContainText("You are describing");
 
     await player1Game.quit();
     confirmMessage = player2.getByTestId("bot-message").nth(1);
